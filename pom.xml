@@ -9,6 +9,7 @@
     <modules>
         <module>bd-shardingsphere-custom-encrypt-algo</module>
         <module>bd-shardingsphere-custom-authority-algo</module>
+        <module>bd-shardingsphere-custom-cluster-mode-repository</module>
     </modules>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
