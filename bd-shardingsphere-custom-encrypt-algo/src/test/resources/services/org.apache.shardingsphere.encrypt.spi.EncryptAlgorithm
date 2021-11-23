@@ -15,7 +15,4 @@
 # limitations under the License.
 #
 
-cn.com.bluemoon.shardingsphere.encrypt.algorithm.DataMaskingEncryptAlgorithm
-cn.com.bluemoon.shardingsphere.encrypt.algorithm.DataMaskingEncryptV2Algorithm
-cn.com.bluemoon.shardingsphere.encrypt.algorithm.SM3EncryptAlgorithm
 cn.com.bluemoon.shardingsphere.encrypt.algorithm.SM4EncryptAlgorithm
