@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-package cn.com.bluemoon.shardingsphere.encrypt.algorithm;
+package cn.com.bluemoon.shardingsphere.custom.flink;
 
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.crypto.SecureUtil;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmFactory;
@@ -26,80 +24,58 @@ import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
-public final class DataMaskingEncryptV2AlgorithmTest {
-
+public final class AESEncryptAlgorithmTest {
+    
     static {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
     }
-
+    
     private EncryptAlgorithm encryptAlgorithm;
-
+    
     @Before
     public void setUp() {
         Properties props = new Properties();
-        props.setProperty("data_masking_type", "MOBILE_PHONE");
-        encryptAlgorithm = ShardingSphereAlgorithmFactory
-                .createAlgorithm(new ShardingSphereAlgorithmConfiguration("DATA_MASKING_V2", props),
-                        EncryptAlgorithm.class);
+        props.setProperty("aes-key-value", "test");
+        encryptAlgorithm = ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration("AES", props), EncryptAlgorithm.class);
     }
-
+    
     @Test
-    public void testRandom() {
-        String aesKeyValue1 = RandomUtil.randomString(16);
-        String aesKeyValue2 = RandomUtil.randomString(16);
-        assertTrue(!aesKeyValue1.equals(aesKeyValue2));
+    public void assertEncrypt() {
+        assertThat(encryptAlgorithm.encrypt("test"), is("dSpPiyENQGDUXMKFMJPGWA=="));
     }
-
-    @Test
-    public void assertEncrypt() throws NoSuchAlgorithmException {
-        System.out.println();
-        assertThat(encryptAlgorithm.encrypt("18813975053"), is("188****5053"));
-        assertThat(encryptAlgorithm.encrypt("188****5053"), is("188****5053"));
-        assertThat(encryptAlgorithm.encrypt("8881315"), is("8881315"));
-        assertThat(encryptAlgorithm.encrypt(null), is(nullValue()));
-
-        assertThat(encryptAlgorithm.decrypt("18813975053"), is("18813975053"));
-        assertThat(encryptAlgorithm.decrypt("188****5053"), is("188****5053"));
-        assertThat(encryptAlgorithm.decrypt(null), is(nullValue()));
-    }
-
-
+    
     @Test(expected = IllegalArgumentException.class)
     public void assertEncryptWithoutKey() {
         Properties props = new Properties();
         encryptAlgorithm.setProps(props);
         encryptAlgorithm.init();
-        assertThat(encryptAlgorithm.encrypt("18813975053"), is("188****5053"));
+        assertThat(encryptAlgorithm.encrypt("test"), is("dSpPiyENQGDUXMKFMJPGWA=="));
     }
-
+    
     @Test
     public void assertEncryptWithNullPlaintext() {
         assertNull(encryptAlgorithm.encrypt(null));
     }
-
+    
     @Test
     public void assertDecrypt() {
-        assertThat(encryptAlgorithm.decrypt("18813975053").toString(), is("18813975053"));
+        assertThat(encryptAlgorithm.decrypt("dSpPiyENQGDUXMKFMJPGWA==").toString(), is("test"));
     }
-
+    
     @Test(expected = IllegalArgumentException.class)
     public void assertDecryptWithoutKey() {
         Properties props = new Properties();
         encryptAlgorithm.setProps(props);
         encryptAlgorithm.init();
-        assertThat(encryptAlgorithm.decrypt("18813975053").toString(), is("18813975053"));
+        assertThat(encryptAlgorithm.decrypt("dSpPiyENQGDUXMKFMJPGWA==").toString(), is("test"));
     }
-
+    
     @Test
     public void assertDecryptWithNullCiphertext() {
         assertNull(encryptAlgorithm.decrypt(null));

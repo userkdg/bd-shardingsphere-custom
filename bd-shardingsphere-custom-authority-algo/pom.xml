@@ -5,7 +5,7 @@
     <parent>
         <artifactId>bd-shardingsphere-custom</artifactId>
         <groupId>cn.com.bluemoon</groupId>
-        <version>5.0.0</version>
+        <version>5.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-authority-core</artifactId>
-            <version>${project.version}</version>
+            <version>${shardingsphere.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-infra-executor</artifactId>
-            <version>${project.version}</version>
+            <version>${shardingsphere.version}</version>
         </dependency>
     </dependencies>
 

@@ -9,7 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>bd-shardingsphere-custom-db-protocol-oracle</artifactId>
+    <artifactId>bd-shardingsphere-custom-encrypt-shuffle</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>bd-shardingsphere-custom-encrypt-shuffle-flink</module>
+        <module>bd-shardingsphere-custom-encrypt-shuffle-spark</module>
+    </modules>
 
 
 </project>

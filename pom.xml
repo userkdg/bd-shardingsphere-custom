@@ -5,12 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>cn.com.bluemoon</groupId>
     <artifactId>bd-shardingsphere-custom</artifactId>
-    <version>5.0.0</version>
+    <version>5.0.0-SNAPSHOT</version>
     <modules>
         <module>bd-shardingsphere-custom-encrypt-algo</module>
         <module>bd-shardingsphere-custom-authority-algo</module>
         <module>bd-shardingsphere-custom-cluster-mode-repository</module>
         <module>bd-shardingsphere-custom-db-protocol-oracle</module>
+        <module>bd-shardingsphere-custom-encrypt-shuffle</module>
     </modules>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
@@ -44,8 +45,69 @@
         <javadocExecutable>${java.home}/../bin/javadoc</javadocExecutable>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>rdc-releases</id>
+            <url>https://repo.rdc.aliyun.com/repository/23480-release-Cm4wtg/</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>rdc-releases</id>
+            <url>https://repo.rdc.aliyun.com/repository/23480-release-Cm4wtg/</url>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/libs-milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>cn.com.bluemoon</groupId>
+                <artifactId>bd-shardingsphere-custom-authority-algo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-infra-common</artifactId>
+                <version>${shardingsphere.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-readwrite-splitting-core</artifactId>
+                <version>${shardingsphere.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-encrypt-core</artifactId>
+                <version>${shardingsphere.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-cluster-mode-repository-zookeeper-curator</artifactId>
+                <version>${shardingsphere.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-encrypt-core</artifactId>
+                <version>${shardingsphere.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.shardingsphere</groupId>
+                <artifactId>shardingsphere-mode-core</artifactId>
+                <version>${shardingsphere.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.apache.shardingsphere</groupId>
                 <artifactId>shardingsphere-encrypt-api</artifactId>
@@ -213,48 +275,48 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <version>${apache-rat-plugin.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/target/**</exclude>
-                        <exclude>**/logs/**</exclude>
-                        <exclude>**/*.log</exclude>
-                        <!-- IDE files -->
-                        <exclude>**/*.iml</exclude>
-                        <exclude>**/.idea/**</exclude>
-                        <exclude>**/*.classpath</exclude>
-                        <exclude>**/.project</exclude>
-                        <exclude>**/.settings/**</exclude>
-                        <exclude>**/dependency-reduced-pom.xml</exclude>
-                        <!-- git files -->
-                        <exclude>**/.gitignore</exclude>
-                        <exclude>**/.gitmodules</exclude>
-                        <exclude>**/.git/**</exclude>
-                        <!-- CI files -->
-                        <exclude>**/.travis.yml</exclude>
-                        <exclude>**/.mvn/jvm.config</exclude>
-                        <exclude>**/.mvn/wrapper/maven-wrapper.properties</exclude>
-                        <!-- GitHub files -->
-                        <exclude>**/.github/**</exclude>
-                        <!-- document files -->
-                        <exclude>**/*.md</exclude>
-                        <excldue>**/*.MD</excldue>
-                        <exclude>**/*.txt</exclude>
-                        <exclude>**/docs/**</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.rat</groupId>-->
+<!--                <artifactId>apache-rat-plugin</artifactId>-->
+<!--                <version>${apache-rat-plugin.version}</version>-->
+<!--                <configuration>-->
+<!--                    <excludes>-->
+<!--                        <exclude>**/target/**</exclude>-->
+<!--                        <exclude>**/logs/**</exclude>-->
+<!--                        <exclude>**/*.log</exclude>-->
+<!--                        &lt;!&ndash; IDE files &ndash;&gt;-->
+<!--                        <exclude>**/*.iml</exclude>-->
+<!--                        <exclude>**/.idea/**</exclude>-->
+<!--                        <exclude>**/*.classpath</exclude>-->
+<!--                        <exclude>**/.project</exclude>-->
+<!--                        <exclude>**/.settings/**</exclude>-->
+<!--                        <exclude>**/dependency-reduced-pom.xml</exclude>-->
+<!--                        &lt;!&ndash; git files &ndash;&gt;-->
+<!--                        <exclude>**/.gitignore</exclude>-->
+<!--                        <exclude>**/.gitmodules</exclude>-->
+<!--                        <exclude>**/.git/**</exclude>-->
+<!--                        &lt;!&ndash; CI files &ndash;&gt;-->
+<!--                        <exclude>**/.travis.yml</exclude>-->
+<!--                        <exclude>**/.mvn/jvm.config</exclude>-->
+<!--                        <exclude>**/.mvn/wrapper/maven-wrapper.properties</exclude>-->
+<!--                        &lt;!&ndash; GitHub files &ndash;&gt;-->
+<!--                        <exclude>**/.github/**</exclude>-->
+<!--                        &lt;!&ndash; document files &ndash;&gt;-->
+<!--                        <exclude>**/*.md</exclude>-->
+<!--                        <excldue>**/*.MD</excldue>-->
+<!--                        <exclude>**/*.txt</exclude>-->
+<!--                        <exclude>**/docs/**</exclude>-->
+<!--                    </excludes>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>check</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 </project>
