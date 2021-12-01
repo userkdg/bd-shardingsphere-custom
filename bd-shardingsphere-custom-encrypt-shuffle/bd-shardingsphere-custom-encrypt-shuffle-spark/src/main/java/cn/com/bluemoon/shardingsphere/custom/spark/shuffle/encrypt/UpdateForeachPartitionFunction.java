@@ -32,16 +32,20 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
         EncryptGlobalConfig broadcastValue = globalConfigBroadcast.getValue();
         // 主键列
         EncryptGlobalConfig.FieldInfo partCol = broadcastValue.getPartitionColumn();
-        StructField structField = schema.apply(partCol.getName());
-        JDBCType partColType = getFieldJDBCType(structField.dataType());
-        partCol.setType(partColType.getVendorTypeNumber());
-        broadcastValue.setPartitionColumn(partCol);
+        if (partCol.getType() ==null) {
+            StructField structField = schema.apply(partCol.getName());
+            JDBCType partColType = getFieldJDBCType(structField.dataType());
+            partCol.setType(partColType.getVendorTypeNumber());
+            broadcastValue.setPartitionColumn(partCol);
+        }
         // 明文列
         List<EncryptGlobalConfig.FieldInfo> plainCols = broadcastValue.getPlainColumnNames();
         for (EncryptGlobalConfig.FieldInfo plainCol : plainCols) {
-            StructField plainField = schema.apply(plainCol.getName());
-            JDBCType plainColType = getFieldJDBCType(plainField.dataType());
-            plainCol.setType(plainColType.getVendorTypeNumber());
+            if (plainCol.getType() == null) {
+                StructField plainField = schema.apply(plainCol.getName());
+                JDBCType plainColType = getFieldJDBCType(plainField.dataType());
+                plainCol.setType(plainColType.getVendorTypeNumber());
+            }
         }
         broadcastValue.setPlainColumnNames(plainCols);
         return broadcastValue;

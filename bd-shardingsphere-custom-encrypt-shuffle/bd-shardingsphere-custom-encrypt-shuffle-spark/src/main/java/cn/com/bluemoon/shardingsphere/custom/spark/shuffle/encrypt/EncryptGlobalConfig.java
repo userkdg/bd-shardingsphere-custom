@@ -31,7 +31,7 @@ public class EncryptGlobalConfig implements Serializable {
     private FieldInfo partitionColumn;
 
     private boolean onYarn = true;
-    
+
     private String jobName = "KMS洗数程序 On Spark";
     /**
      * 字段名称+类型，有序
@@ -60,8 +60,12 @@ public class EncryptGlobalConfig implements Serializable {
     @AllArgsConstructor
     public static class FieldInfo implements Serializable {
         private String name;
+        // 入参不为空，则已入参为准，若为空则以spark读取的schema类型为准
         private Integer type;
 
+        public FieldInfo(String name) {
+            this.name = name;
+        }
     }
 
 }
