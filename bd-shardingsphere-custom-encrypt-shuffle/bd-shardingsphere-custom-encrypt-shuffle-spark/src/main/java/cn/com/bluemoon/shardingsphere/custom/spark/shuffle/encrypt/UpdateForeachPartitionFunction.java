@@ -1,22 +1,26 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 
 import java.sql.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.JDBCMetadataUtils.getFieldJDBCType;
+
 /**
  * @author Jarod.Kong
  */
 public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<Row> {
-    private final Broadcast<EncryptGlobalConfig> globalConfigBroadcast;
+    private final EncryptGlobalConfig globalConfig;
 
-    public UpdateForeachPartitionFunction(Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
-        this.globalConfigBroadcast = globalConfigBroadcast;
+    public UpdateForeachPartitionFunction(StructType schema, Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
+        this.globalConfig = globalColsTypeHandlerBySparkSchema(globalConfigBroadcast, schema);
     }
 
     @Override
@@ -24,8 +28,26 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
         this.update(iterator);
     }
 
-    private void update(Iterator<Row> its) {
-        final EncryptGlobalConfig globalConfig = globalConfigBroadcast.getValue();
+    private EncryptGlobalConfig globalColsTypeHandlerBySparkSchema(Broadcast<EncryptGlobalConfig> globalConfigBroadcast, StructType schema) {
+        EncryptGlobalConfig broadcastValue = globalConfigBroadcast.getValue();
+        // 主键列
+        EncryptGlobalConfig.FieldInfo partCol = broadcastValue.getPartitionColumn();
+        StructField structField = schema.apply(partCol.getName());
+        JDBCType partColType = getFieldJDBCType(structField.dataType());
+        partCol.setType(partColType.getVendorTypeNumber());
+        broadcastValue.setPartitionColumn(partCol);
+        // 明文列
+        List<EncryptGlobalConfig.FieldInfo> plainCols = broadcastValue.getPlainColumnNames();
+        for (EncryptGlobalConfig.FieldInfo plainCol : plainCols) {
+            StructField plainField = schema.apply(plainCol.getName());
+            JDBCType plainColType = getFieldJDBCType(plainField.dataType());
+            plainCol.setType(plainColType.getVendorTypeNumber());
+        }
+        broadcastValue.setPlainColumnNames(plainCols);
+        return broadcastValue;
+    }
+
+    private void update(Iterator<Row> its) throws SQLException {
         EncryptGlobalConfig.FieldInfo partitionColumn = globalConfig.getPartitionColumn();
         try (Connection conn = DriverManager.getConnection(globalConfig.getProxyUrl())) {
             List<EncryptGlobalConfig.FieldInfo> plainColumnNames = globalConfig.getPlainColumnNames();
@@ -41,7 +63,6 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
                     // 类型问题
                     for (int i = 1; i <= plainColumnNames.size(); i++) {
                         EncryptGlobalConfig.FieldInfo finfo = plainColumnNames.get(i - 1);
-                        // TODO: 2021/11/27 管理字段类型
                         ps.setObject(i, row.getAs(finfo.getName()), JDBCType.valueOf(finfo.getType()));
                     }
                     ps.setObject(plainColumnNames.size() + 1, row.getAs(partitionColumn.getName()), JDBCType.valueOf(partitionColumn.getType()));
@@ -49,8 +70,6 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
                 }
                 ps.executeBatch();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 }

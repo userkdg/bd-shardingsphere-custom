@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
+package cn.com.bluemoon.shardingsphere.custom.cli;
 
 
 import lombok.extern.slf4j.Slf4j;

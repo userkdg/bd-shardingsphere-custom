@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import com.google.gson.Gson;
 

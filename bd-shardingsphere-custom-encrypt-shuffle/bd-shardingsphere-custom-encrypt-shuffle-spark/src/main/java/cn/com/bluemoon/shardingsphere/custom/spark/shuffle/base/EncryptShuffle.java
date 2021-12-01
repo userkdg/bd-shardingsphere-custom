@@ -1,10 +1,10 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
 /**
  * @author Jarod.Kong
  */
 public interface EncryptShuffle extends ShardingSphereShuffle {
-    public void init(EncryptGlobalConfig paramConfig);
+    public EncryptShuffle init();
 
     public void finish();
 }

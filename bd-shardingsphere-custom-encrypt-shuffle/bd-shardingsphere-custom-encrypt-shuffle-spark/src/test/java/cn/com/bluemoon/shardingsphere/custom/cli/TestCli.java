@@ -1,8 +1,8 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptGlobalConfig.FieldInfo;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig.FieldInfo;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfigSwapper;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 

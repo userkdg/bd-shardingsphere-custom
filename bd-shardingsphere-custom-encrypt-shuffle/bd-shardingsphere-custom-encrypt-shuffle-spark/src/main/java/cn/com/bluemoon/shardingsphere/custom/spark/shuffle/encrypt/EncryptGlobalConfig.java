@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +14,9 @@ import java.util.List;
 @Getter
 @Setter
 public class EncryptGlobalConfig implements Serializable {
+
+    public static final String MYSQL = "mysql";
+    public static final String POSTGRESQL = "postgresql";
     /**
      * jdbc:mysql://192.168.234.xx:3306/xxx?user=xxx&password=xxxx
      */
@@ -22,10 +25,14 @@ public class EncryptGlobalConfig implements Serializable {
      * jdbc:mysql://192.168.234.xx:3306/xxx?user=xxx&password=xxxx
      */
     private String proxyUrl;
+
     private String ruleTableName;
 
     private FieldInfo partitionColumn;
 
+    private boolean onYarn = true;
+    
+    private String jobName = "KMS洗数程序 On Spark";
     /**
      * 字段名称+类型，有序
      */
@@ -42,8 +49,8 @@ public class EncryptGlobalConfig implements Serializable {
     }
 
     private String getDatabaseType(String sourceUrl) {
-        if (sourceUrl.contains("jdbc:mysql")) return "mysql";
-        if (sourceUrl.contains("jdbc:postgresql")) return "postgresql";
+        if (sourceUrl.contains("jdbc:mysql")) return MYSQL;
+        if (sourceUrl.contains("jdbc:postgresql")) return POSTGRESQL;
         throw new RuntimeException("不支持数据库类型");
     }
 
@@ -51,10 +58,10 @@ public class EncryptGlobalConfig implements Serializable {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class FieldInfo implements Serializable{
+    public static class FieldInfo implements Serializable {
         private String name;
         private Integer type;
-        
+
     }
 
 }
