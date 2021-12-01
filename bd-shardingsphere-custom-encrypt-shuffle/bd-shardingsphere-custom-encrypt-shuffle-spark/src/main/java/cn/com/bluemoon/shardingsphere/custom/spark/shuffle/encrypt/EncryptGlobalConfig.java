@@ -28,7 +28,11 @@ public class EncryptGlobalConfig implements Serializable {
 
     private String ruleTableName;
 
-    private FieldInfo partitionColumn;
+    /**
+     * 支持单主键、多主键
+     * pri_1 and pri_2
+     */
+    private List<FieldInfo> primaryCols;
 
     private boolean onYarn = true;
 
@@ -36,7 +40,7 @@ public class EncryptGlobalConfig implements Serializable {
     /**
      * 字段名称+类型，有序
      */
-    private List<FieldInfo> plainColumnNames;
+    private List<FieldInfo> plainCols;
 
     public String getDatabaseType() {
         if (sourceUrl != null) {

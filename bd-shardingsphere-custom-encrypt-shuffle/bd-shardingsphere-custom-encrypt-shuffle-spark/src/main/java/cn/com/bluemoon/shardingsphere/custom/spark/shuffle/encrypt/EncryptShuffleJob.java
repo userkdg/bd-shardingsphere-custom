@@ -15,9 +15,8 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig.MYSQL;
 import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig.POSTGRESQL;
@@ -41,7 +40,7 @@ public class EncryptShuffleJob implements EncryptShuffle {
 
     public EncryptShuffle init() {
         this.sourceJdbcProps = Collections.unmodifiableMap(getSourceJdbcProps());
-        if (config.getPlainColumnNames() == null || config.getPlainColumnNames().isEmpty()) {
+        if (config.getPlainCols() == null || config.getPlainCols().isEmpty()) {
             throw new RuntimeException("洗数字段不可为空");
         }
         return this;
@@ -53,8 +52,9 @@ public class EncryptShuffleJob implements EncryptShuffle {
             dataset.printSchema();
             final StructType schema = dataset.schema();
             log.info("开始更新源表");
-            dataset.filter((FilterFunction<Row>) row -> globalConfigBroadcast.value().getPlainColumnNames().stream().anyMatch(f -> row.getAs(f.getName()) != null))
-                    .repartition(Integer.parseInt(parallelNum), new Column(globalConfigBroadcast.getValue().getPartitionColumn().getName()))
+            final EncryptGlobalConfig globalConfig = globalConfigBroadcast.getValue();
+            dataset.filter((FilterFunction<Row>) row -> globalConfig.getPlainCols().stream().anyMatch(f -> row.getAs(f.getName()) != null))
+                    .repartition(Integer.parseInt(parallelNum), globalConfig.getPrimaryCols().stream().map(g -> new Column(g.getName())).toArray(Column[]::new))
                     .foreachPartition(new UpdateForeachPartitionFunction(schema, globalConfigBroadcast));
             log.info("结束！！");
         }
@@ -74,8 +74,13 @@ public class EncryptShuffleJob implements EncryptShuffle {
             prop.put(JDBCOptions.JDBC_DRIVER_CLASS(), "org.postgresql.Driver");
         }
         prop.put(JDBCOptions.JDBC_URL(), config.getSourceUrl());
-        prop.put(JDBCOptions.JDBC_TABLE_NAME(), config.getRuleTableName());
-        prop.put(JDBCOptions.JDBC_PARTITION_COLUMN(), config.getPartitionColumn().getName());
+        // 2021/12/1 只查询相关字段
+        List<String> fields = new ArrayList<>();
+        fields.addAll(config.getPrimaryCols().stream().map(EncryptGlobalConfig.FieldInfo::getName).collect(Collectors.toList()));
+        fields.addAll(config.getPlainCols().stream().map(EncryptGlobalConfig.FieldInfo::getName).collect(Collectors.toList()));
+        final String dbTable = String.format("(select %s from %s where 1=1 ) as %s_tmp", String.join(",", fields), config.getRuleTableName(), config.getRuleTableName());
+        prop.put(JDBCOptions.JDBC_TABLE_NAME(), dbTable);
+        prop.put(JDBCOptions.JDBC_PARTITION_COLUMN(), config.getPrimaryCols().get(0).getName());
         prop.put(JDBCOptions.JDBC_NUM_PARTITIONS(), parallelNum);
         prop.put(JDBCOptions.JDBC_BATCH_FETCH_SIZE(), BATCH_SIZE);
         prop.put(JDBCOptions.JDBC_LOWER_BOUND(), lowerBound);

@@ -19,10 +19,13 @@ public class EncryptShuffleCliTest {
         config.setSourceUrl("jdbc:mysql://192.168.234.8:4401/ec_order?user=sharding&password=HGbZYrqlpr25&useUnicode=true&useSSL=false&characterEncoding=utf-8");
         config.setProxyUrl("jdbc:mysql://192.168.243.34:23308/ec_order_db?user=root&password=root&useUnicode=true&useSSL=false&characterEncoding=utf-8");
         config.setRuleTableName("ec_oms_order_import");
-        config.setPartitionColumn(new EncryptGlobalConfig.FieldInfo("id"));
+        config.setPrimaryCols(Lists.newArrayList(
+                new EncryptGlobalConfig.FieldInfo("id")
+//                ,new EncryptGlobalConfig.FieldInfo("id")
+                ));
         config.setOnYarn(false);
         config.setJobName("电商洗数-ec_order");
-        config.setPlainColumnNames(
+        config.setPlainCols(
                 Lists.newArrayList(
                         new EncryptGlobalConfig.FieldInfo("receiver_name"),
                         new EncryptGlobalConfig.FieldInfo("receiver_mobile"),
