@@ -27,8 +27,12 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
     }
 
     @Override
-    public void call(Iterator<Row> iterator) throws Exception {
-        this.update(iterator);
+    public void call(Iterator<Row> iterator) {
+        try {
+            this.update(iterator);
+        } catch (SQLException e) {
+            log.error("批量更新异常，跳过此批次", e);
+        }
     }
 
     private EncryptGlobalConfig globalColsTypeHandlerBySparkSchema(Broadcast<EncryptGlobalConfig> globalConfigBroadcast, StructType schema) {
@@ -53,6 +57,7 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
             }
         }
         broadcastValue.setPlainCols(plainCols);
+        log.info("encrypt Global Bean:{}", broadcastValue);
         return broadcastValue;
     }
 

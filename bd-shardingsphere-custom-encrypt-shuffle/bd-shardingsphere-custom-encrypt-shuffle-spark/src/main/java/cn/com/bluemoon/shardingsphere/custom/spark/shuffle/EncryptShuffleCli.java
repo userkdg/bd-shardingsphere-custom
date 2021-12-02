@@ -21,13 +21,13 @@ public class EncryptShuffleCli implements CliRunner {
         String simpleName = EncryptShuffleCli.class.getSimpleName();
         AdvCli.initRunner(args, simpleName, new EncryptShuffleCli());
         log.info("退出{}的main()方法", simpleName);
-        System.exit(0);
+//        System.exit(0);
     }
 
     @Override
     public Options initOptions() {
         Options options = new Options();
-        options.addOption("c",PARAM_JOB_CONFIG, true, "任务所有配置信息, EncryptConfig的Json字符串");
+        options.addOption("c", PARAM_JOB_CONFIG, true, "任务所有配置信息, EncryptConfig的Json字符串");
         return options;
     }
 
@@ -36,16 +36,6 @@ public class EncryptShuffleCli implements CliRunner {
         return cmdLine.hasOption(PARAM_JOB_CONFIG);
     }
 
-    /**
-     * <pre>
-     *     YamlCenterConfigsRepositoryImpl repository = new YamlCenterConfigsRepositoryImpl();
-     *         CenterConfigService centerConfigService = new CenterConfigServiceImpl(repository);
-     *         Optional<CenterConfig> centerConfigOpt = centerConfigService.loadActivated();
-     *         CenterConfig centerConfig = centerConfigOpt.orElseThrow(() -> new RuntimeException("请提供中心配置信息"));
-     *         ClusterPersistRepository configCenter = CenterRepositoryFactory.createConfigCenter(centerConfig);
-     *         MetaDataPersistService metaDataPersistService = new MetaDataPersistService(configCenter);
-     * </pre>
-     */
     @Override
     public void start(CommandLine cmdLine) {
         log.info("=====================加解密-明文->密文-洗数作业开始===================");

@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCli;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfigSwapper;
 import com.google.common.collect.Lists;
@@ -16,11 +17,11 @@ public class EncryptShuffleCliTest {
     @Before
     public void setUp() throws Exception {
         EncryptGlobalConfig config = new EncryptGlobalConfig();
-        config.setSourceUrl("jdbc:mysql://192.168.234.8:4401/ec_order?user=sharding&password=HGbZYrqlpr25&useUnicode=true&useSSL=false&characterEncoding=utf-8");
-        config.setProxyUrl("jdbc:mysql://192.168.243.34:23308/ec_order_db?user=root&password=root&useUnicode=true&useSSL=false&characterEncoding=utf-8");
-        config.setRuleTableName("ec_oms_order_import");
+        config.setSourceUrl("jdbc:mysql://192.168.234.8:4401/ec_order?user=sharding&password=HGbZYrqlpr25");
+        config.setProxyUrl("jdbc:mysql://192.168.243.34:23308/ec_order_db?user=root&password=root");
+        config.setRuleTableName("ec_oms_order");
         config.setPrimaryCols(Lists.newArrayList(
-                new EncryptGlobalConfig.FieldInfo("id")
+                new EncryptGlobalConfig.FieldInfo("order_code")
 //                ,new EncryptGlobalConfig.FieldInfo("id")
                 ));
         config.setOnYarn(false);
@@ -32,6 +33,7 @@ public class EncryptShuffleCliTest {
                         new EncryptGlobalConfig.FieldInfo("address")
                 )
         );
+        config.setShuffleMode(ShuffleMode.OrNullShuffle);
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         System.out.println(json);
         EncryptGlobalConfig configEq = EncryptGlobalConfigSwapper.swapToConfig(json);

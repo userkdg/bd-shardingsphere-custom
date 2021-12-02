@@ -1,5 +1,6 @@
 package cn.com.bluemoon.shardingsphere.encrypt.algorithm;
 
+import cn.hutool.core.util.StrUtil;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmFactory;
@@ -27,7 +28,7 @@ public class SM4EncryptAlgorithmTest {
     @Before
     public void setUp() {
         Properties props = new Properties();
-        props.setProperty("sm4-key-value", "abc123efgabc123efgabc123efgabc123efg");
+        props.setProperty("sm4-key-value", "jluwy9u94dusnb9g");
         props.setProperty("sm4-iv-value", "bluemooniviviviv");
         encryptAlgorithm = ShardingSphereAlgorithmFactory
                 .createAlgorithm(new ShardingSphereAlgorithmConfiguration("SM4", props),
@@ -41,7 +42,25 @@ public class SM4EncryptAlgorithmTest {
 
         assertThat(encryptAlgorithm.decrypt("DyytBVpVZkwsoi1ce6nCmA=="), is("18813975053"));
         assertThat(encryptAlgorithm.decrypt(null), is(nullValue()));
+
     }
 
+    @Test
+    public void testLength() {
+        // jluwy9u94dusnb9g
+        // gsmIaet1pCZcmodqWD7IAFlTSHVgVepTdd1gligcnyzIE4CEC0bEvY3EMQsOu/1My4gR7pKNYptrt0FDHu/jibpGWUBBpihiqcgSvdwHg5pcH8hLU+wOzJP37ICkh+8V
+        // 128
+        String repeat = StrUtil.repeat("жа", 256);
+        System.out.println(repeat);
+        System.out.println(repeat.length());
+        // 4dusnb9g
+        // 128
+        String s1 =
+//                encryptAlgorithm.encrypt("ab");
+//                encryptAlgorithm.encrypt("жа");
+                encryptAlgorithm.encrypt(repeat);
+        System.out.println(s1);
+        System.out.println(s1.length());
+    }
 
 }

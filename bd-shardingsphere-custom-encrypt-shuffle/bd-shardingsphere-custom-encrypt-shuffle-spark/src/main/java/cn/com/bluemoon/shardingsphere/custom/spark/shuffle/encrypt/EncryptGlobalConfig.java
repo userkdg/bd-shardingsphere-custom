@@ -1,5 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,10 @@ public class EncryptGlobalConfig implements Serializable {
      * 字段名称+类型，有序
      */
     private List<FieldInfo> plainCols;
+    /**
+     * 定义洗数模式
+     */
+    private ShuffleMode shuffleMode = ShuffleMode.ReShuffle;
 
     public String getDatabaseType() {
         if (sourceUrl != null) {
