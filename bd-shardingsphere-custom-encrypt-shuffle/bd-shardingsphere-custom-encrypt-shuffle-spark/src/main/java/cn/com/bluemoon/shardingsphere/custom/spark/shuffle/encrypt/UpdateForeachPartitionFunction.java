@@ -77,6 +77,8 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
             String updateDynamicSql = sb.toString();
             log.info("更新SQL=>{}", updateDynamicSql);
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
+                int batchSize = Integer.parseInt(EncryptShuffleJob.BATCH_SIZE);
+                int size = 0;
                 while (its.hasNext()) {
                     Row row = its.next();
                     // 类型问题
@@ -89,8 +91,14 @@ public class UpdateForeachPartitionFunction implements ForeachPartitionFunction<
                         ps.setObject(++plainColSize, row.getAs(primaryCol.getName()), JDBCType.valueOf(primaryCol.getType()));
                     }
                     ps.addBatch();
+                    size ++;
+                    if (size % batchSize == 0){
+                        ps.executeBatch();
+                        ps.clearBatch();
+                    }
                 }
                 ps.executeBatch();
+                ps.clearBatch();
             }
         }
     }

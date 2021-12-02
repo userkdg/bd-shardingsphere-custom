@@ -1,13 +1,12 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.google.common.annotations.VisibleForTesting;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * @author Jarod.Kong
@@ -54,7 +53,8 @@ public class EncryptGlobalConfig implements Serializable {
         return convertJdbcUrl(proxyUrl);
     }
 
-    private String convertJdbcUrl(String proxyUrl) {
+    @VisibleForTesting
+    public String convertJdbcUrl(String proxyUrl) {
         if (proxyUrl != null) {
             String url = proxyUrl;
             if (!url.contains("useUnicode")) url += "&useUnicode=true";
@@ -94,10 +94,29 @@ public class EncryptGlobalConfig implements Serializable {
         private String name;
         // 入参不为空，则已入参为准，若为空则以spark读取的schema类型为准
         private Integer type;
+        /**
+         * 表字段加密规则
+         */
+        private EncryptRule encryptRule;
 
         public FieldInfo(String name) {
             this.name = name;
         }
+        public FieldInfo(String name, EncryptRule encryptRule){
+            this.name = name;
+            this.encryptRule = encryptRule;
+        }
     }
-
+    @Getter
+    @RequiredArgsConstructor
+    public static class EncryptRule {
+        /**
+         * 类型：AES/ MD5
+         */
+        private final String type;
+        /**
+         * aes-key-value='xx'
+         */
+        private final Properties props;
+    }
 }

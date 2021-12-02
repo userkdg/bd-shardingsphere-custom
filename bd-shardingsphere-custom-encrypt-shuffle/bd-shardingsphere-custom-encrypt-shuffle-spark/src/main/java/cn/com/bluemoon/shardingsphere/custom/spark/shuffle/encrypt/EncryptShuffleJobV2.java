@@ -6,8 +6,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FilterFunction;
+import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
@@ -16,10 +19,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig.MYSQL;
@@ -31,7 +31,7 @@ import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.Encryp
 @RequiredArgsConstructor
 @Slf4j
 @Getter
-public class EncryptShuffleJob implements EncryptShuffle {
+public class EncryptShuffleJobV2 implements EncryptShuffle {
     static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
     private static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
     private static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
@@ -57,6 +57,25 @@ public class EncryptShuffleJob implements EncryptShuffle {
             final StructType schema = dataset.schema();
             log.info("开始更新源表");
             final EncryptGlobalConfig globalConfig = globalConfigBroadcast.getValue();
+            JavaRDD<Row> rowJavaRDD = dataset.toJavaRDD();
+            rowJavaRDD.mapPartitions(new FlatMapFunction<Iterator<Row>, Row>() {
+                private final Broadcast<EncryptGlobalConfig> globalConfigBroadcast = null;
+
+                @Override
+                public Iterator<Row> call(Iterator<Row> iterator) throws Exception {
+                    globalConfigBroadcast.getValue().getEncrypRules();
+                    while (iterator.hasNext()){
+
+                    }
+                    return iterator;
+                }
+            })
+            .foreachPartition(new VoidFunction<Iterator<Row>>() {
+                @Override
+                public void call(Iterator<Row> iterator) throws Exception {
+
+                }
+            });
             dataset.filter((FilterFunction<Row>) row -> globalConfig.getPlainCols().stream().anyMatch(f -> row.getAs(f.getName()) != null))
                     .repartition(Integer.parseInt(parallelNum), globalConfig.getPrimaryCols().stream().map(g -> new Column(g.getName())).toArray(Column[]::new))
                     .foreachPartition(new UpdateForeachPartitionFunction(schema, globalConfigBroadcast));
