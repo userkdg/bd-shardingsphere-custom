@@ -28,7 +28,6 @@ public class EncryptGlobalConfig implements Serializable {
     private String proxyUrl;
 
     private String ruleTableName;
-
     /**
      * 支持单主键、多主键
      * pri_1 and pri_2
@@ -46,6 +45,30 @@ public class EncryptGlobalConfig implements Serializable {
      * 定义洗数模式
      */
     private ShuffleMode shuffleMode = ShuffleMode.ReShuffle;
+
+    public String getSourceUrl() {
+        return convertJdbcUrl(sourceUrl);
+    }
+
+    public String getProxyUrl() {
+        return convertJdbcUrl(proxyUrl);
+    }
+
+    private String convertJdbcUrl(String proxyUrl) {
+        if (proxyUrl != null) {
+            String url = proxyUrl;
+            if (!url.contains("useUnicode")) url += "&useUnicode=true";
+            if (!url.contains("characterEncoding")) url += "&characterEncoding=utf8";
+//            if (!url.contains("rewriteBatchedStatements")) url += "&rewriteBatchedStatements=true";
+            if (!url.contains("useSSL")) url += "&useSSL=false";
+            if (!url.contains("serverTimezone")) url += "&serverTimezone=Asia/Shanghai";
+            if (!url.contains("character_set_server")) url += "&character_set_server=utf8mb4";
+            if (!url.contains("connectionCollation")) url += "&connectionCollation=utf8mb4_bin";
+//            if (!url.contains("allowMultiQueries")) url += "&allowMultiQueries=true";
+            return url;
+        }
+        return null;
+    }
 
     public String getDatabaseType() {
         if (sourceUrl != null) {
