@@ -24,7 +24,7 @@ public class EncryptGlobalConfig implements Serializable {
     /**
      * jdbc:mysql://192.168.234.xx:3306/xxx?user=xxx&password=xxxx
      */
-    private String proxyUrl;
+    private String targetUrl;
 
     private String ruleTableName;
     /**
@@ -45,26 +45,33 @@ public class EncryptGlobalConfig implements Serializable {
      */
     private ShuffleMode shuffleMode = ShuffleMode.ReShuffle;
 
-    public String getSourceUrl() {
-        return convertJdbcUrl(sourceUrl);
+    /**
+     * 转换url是否支持multi batch操作
+     */
+    private boolean multiBatchUrlConfig;
+
+    public String getConvertSourceUrl() {
+        return convertJdbcUrl(sourceUrl, multiBatchUrlConfig);
     }
 
-    public String getProxyUrl() {
-        return convertJdbcUrl(proxyUrl);
+    public String getConvertTargetUrl() {
+        return convertJdbcUrl(targetUrl, multiBatchUrlConfig);
     }
 
     @VisibleForTesting
-    public String convertJdbcUrl(String proxyUrl) {
-        if (proxyUrl != null) {
-            String url = proxyUrl;
+    public String convertJdbcUrl(String targetUrl, boolean multiBatchConfig) {
+        if (targetUrl != null) {
+            String url = targetUrl;
             if (!url.contains("useUnicode")) url += "&useUnicode=true";
             if (!url.contains("characterEncoding")) url += "&characterEncoding=utf8";
-//            if (!url.contains("rewriteBatchedStatements")) url += "&rewriteBatchedStatements=true";
+            if (multiBatchConfig) {
+                if (!url.contains("rewriteBatchedStatements")) url += "&rewriteBatchedStatements=true";
+                if (!url.contains("allowMultiQueries")) url += "&allowMultiQueries=true";
+            }
             if (!url.contains("useSSL")) url += "&useSSL=false";
             if (!url.contains("serverTimezone")) url += "&serverTimezone=Asia/Shanghai";
             if (!url.contains("character_set_server")) url += "&character_set_server=utf8mb4";
             if (!url.contains("connectionCollation")) url += "&connectionCollation=utf8mb4_bin";
-//            if (!url.contains("allowMultiQueries")) url += "&allowMultiQueries=true";
             return url;
         }
         return null;
@@ -74,8 +81,8 @@ public class EncryptGlobalConfig implements Serializable {
         if (sourceUrl != null) {
             return getDatabaseType(sourceUrl);
         }
-        if (proxyUrl != null) {
-            return getDatabaseType(proxyUrl);
+        if (targetUrl != null) {
+            return getDatabaseType(targetUrl);
         }
         return null;
     }
@@ -102,14 +109,21 @@ public class EncryptGlobalConfig implements Serializable {
         public FieldInfo(String name) {
             this.name = name;
         }
-        public FieldInfo(String name, EncryptRule encryptRule){
+
+        public FieldInfo(String name, Integer type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        public FieldInfo(String name, EncryptRule encryptRule) {
             this.name = name;
             this.encryptRule = encryptRule;
         }
     }
+
     @Getter
     @RequiredArgsConstructor
-    public static class EncryptRule {
+    public static class EncryptRule implements Serializable{
         /**
          * 类型：AES/ MD5
          */

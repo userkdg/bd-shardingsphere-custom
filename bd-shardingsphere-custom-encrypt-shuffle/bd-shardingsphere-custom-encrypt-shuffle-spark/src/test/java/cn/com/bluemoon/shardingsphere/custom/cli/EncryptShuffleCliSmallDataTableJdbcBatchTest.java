@@ -64,7 +64,7 @@ public class EncryptShuffleCliSmallDataTableJdbcBatchTest {
     }
 
     private String convertJdbcUrl(String s) {
-        return config.convertJdbcUrl(s);
+        return config.convertJdbcUrl(s, false);
     }
 
 

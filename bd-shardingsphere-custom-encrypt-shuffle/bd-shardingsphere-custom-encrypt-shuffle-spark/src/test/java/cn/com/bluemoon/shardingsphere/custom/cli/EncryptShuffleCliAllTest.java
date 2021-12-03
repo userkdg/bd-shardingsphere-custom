@@ -43,7 +43,7 @@ public class EncryptShuffleCliAllTest {
         List<EncryptGlobalConfig> configs = tableNameRows.entrySet().stream().map(entry -> {
             EncryptGlobalConfig config = new EncryptGlobalConfig();
             config.setSourceUrl("jdbc:mysql://192.168.234.8:4401/ec_order?user=sharding&password=HGbZYrqlpr25");
-            config.setProxyUrl("jdbc:mysql://192.168.243.34:23308/ec_order_db?user=root&password=root");
+            config.setTargetUrl("jdbc:mysql://192.168.243.34:23308/ec_order_db?user=root&password=root");
             config.setRuleTableName(entry.getKey());
             List<String> orDefault = (List<String>) tableKeys.getOrDefault(entry.getKey(), Collections.emptyList());
             config.setPrimaryCols(orDefault.stream().map(t -> new EncryptGlobalConfig.FieldInfo(t)).collect(Collectors.toList()));

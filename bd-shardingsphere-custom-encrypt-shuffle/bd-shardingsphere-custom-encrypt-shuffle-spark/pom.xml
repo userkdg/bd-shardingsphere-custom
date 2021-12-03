@@ -20,6 +20,15 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-encrypt-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.com.bluemoon</groupId>
+            <artifactId>bd-shardingsphere-custom-encrypt-algo</artifactId>
+            <version>5.0.0-SNAPSHOT</version>
+        </dependency>
 
         <!--        java.lang.NoClassDefFoundError: com/fasterxml/jackson/module/scala/ScalaObjectMapper-->
         <dependency>

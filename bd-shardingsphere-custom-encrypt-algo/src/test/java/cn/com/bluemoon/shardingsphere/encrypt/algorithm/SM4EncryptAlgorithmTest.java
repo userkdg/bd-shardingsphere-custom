@@ -50,14 +50,14 @@ public class SM4EncryptAlgorithmTest {
         // jluwy9u94dusnb9g
         // gsmIaet1pCZcmodqWD7IAFlTSHVgVepTdd1gligcnyzIE4CEC0bEvY3EMQsOu/1My4gR7pKNYptrt0FDHu/jibpGWUBBpihiqcgSvdwHg5pcH8hLU+wOzJP37ICkh+8V
         // 128
-        String repeat = StrUtil.repeat("ÖÐ", 256);
+        String repeat = StrUtil.repeat("ä¸­", 256);
         System.out.println(repeat);
         System.out.println(repeat.length());
         // 4dusnb9g
         // 128
         String s1 =
 //                encryptAlgorithm.encrypt("ab");
-//                encryptAlgorithm.encrypt("ÖÐ");
+//                encryptAlgorithm.encrypt("ä¸­");
                 encryptAlgorithm.encrypt(repeat);
         System.out.println(s1);
         System.out.println(s1.length());
