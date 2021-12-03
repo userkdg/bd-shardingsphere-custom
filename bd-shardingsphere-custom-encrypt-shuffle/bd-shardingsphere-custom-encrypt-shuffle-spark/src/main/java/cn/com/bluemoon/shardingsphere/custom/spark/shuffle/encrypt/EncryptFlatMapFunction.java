@@ -1,6 +1,5 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
-import cn.hutool.core.lang.Assert;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmFactory;
@@ -22,9 +21,11 @@ public class EncryptFlatMapFunction implements FlatMapFunction<Iterator<Row>, Ma
     }
 
     private final List<EncryptGlobalConfig.FieldInfo> plainCols;
+    private final List<EncryptGlobalConfig.FieldInfo> primaryCols;
 
     public EncryptFlatMapFunction(Broadcast<EncryptGlobalConfig> broadcast) {
         this.plainCols = broadcast.getValue().getPlainCols();
+        this.primaryCols = broadcast.getValue().getPrimaryCols();
     }
 
     private static EncryptAlgorithm createEncryptAlgorithm(String type, Properties props) {
@@ -51,6 +52,9 @@ public class EncryptFlatMapFunction implements FlatMapFunction<Iterator<Row>, Ma
                 String cipherText = encryptAlgorithm.encrypt(val);
                 r.put(plainCol.getName(), val);
                 r.put(encryptFieldName(plainCol.getName()), cipherText);
+            }
+            for (EncryptGlobalConfig.FieldInfo primaryCol : primaryCols) {
+                r.put(primaryCol.getName(), row.getAs(primaryCol.getName()));
             }
             rows.add(r);
         }
