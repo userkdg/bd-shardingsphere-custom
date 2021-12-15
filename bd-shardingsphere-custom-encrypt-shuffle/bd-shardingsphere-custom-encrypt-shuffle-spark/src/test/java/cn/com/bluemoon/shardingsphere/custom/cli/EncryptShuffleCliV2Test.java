@@ -6,10 +6,12 @@ import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfigSwapper;
 import com.google.common.collect.Lists;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jarod.Kong
@@ -28,7 +30,7 @@ public class EncryptShuffleCliV2Test {
 //                ,new EncryptGlobalConfig.FieldInfo("id")
                 ));
         config.setOnYarn(false);
-        config.setJobName("电商洗数-t_user_info_encrypt_v3");
+        config.setJobName("bd-spark-encrypt-shuffle-t_user_info_encrypt_v3");
         Properties props = new Properties();
         props.put("aes-key-value", "123456abc");
         config.setPlainCols(
@@ -45,8 +47,11 @@ public class EncryptShuffleCliV2Test {
         this.args = new String[]{"-c=" + json};
     }
 
+
+    @SneakyThrows
     @Test
     public void test() {
         EncryptShuffleCliV2.main(args);
+        TimeUnit.MINUTES.sleep(10);
     }
 }

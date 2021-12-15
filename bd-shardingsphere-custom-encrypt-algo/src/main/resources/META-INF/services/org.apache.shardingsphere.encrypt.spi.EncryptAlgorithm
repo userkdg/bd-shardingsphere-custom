@@ -19,3 +19,6 @@ cn.com.bluemoon.shardingsphere.encrypt.algorithm.DataMaskingEncryptAlgorithm
 cn.com.bluemoon.shardingsphere.encrypt.algorithm.DataMaskingEncryptV2Algorithm
 cn.com.bluemoon.shardingsphere.encrypt.algorithm.SM3EncryptAlgorithm
 cn.com.bluemoon.shardingsphere.encrypt.algorithm.SM4EncryptAlgorithm
+org.apache.shardingsphere.encrypt.algorithm.AESEncryptAlgorithm
+org.apache.shardingsphere.encrypt.algorithm.MD5EncryptAlgorithm
+org.apache.shardingsphere.encrypt.algorithm.RC4EncryptAlgorithm

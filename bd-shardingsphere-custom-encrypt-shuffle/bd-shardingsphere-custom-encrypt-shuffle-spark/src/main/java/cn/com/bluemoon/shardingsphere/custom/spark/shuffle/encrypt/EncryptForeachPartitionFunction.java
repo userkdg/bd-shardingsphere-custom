@@ -65,8 +65,7 @@ public class EncryptForeachPartitionFunction extends BaseEncryptForeachPartition
             whereSql.add(primaryCol.getName() + "=?");
         }
         sb.append(String.join(" and ", whereSql));
-        String updateDynamicSql = sb.toString();
-        return updateDynamicSql;
+        return sb.toString();
     }
 
     private List<String> getCipherCols(List<EncryptGlobalConfig.FieldInfo> plainColumnNames) {
