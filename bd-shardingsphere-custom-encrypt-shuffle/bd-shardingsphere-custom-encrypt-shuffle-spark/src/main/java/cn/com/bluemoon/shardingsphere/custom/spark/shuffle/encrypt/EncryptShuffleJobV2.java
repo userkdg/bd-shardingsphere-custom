@@ -1,5 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
 import cn.hutool.core.lang.Assert;
 import lombok.Getter;

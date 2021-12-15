@@ -1,9 +1,9 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCli;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ShuffleMode;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
 import com.google.gson.Gson;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.Dataset;

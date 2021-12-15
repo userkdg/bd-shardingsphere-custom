@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import org.junit.Test;
 
 import java.sql.*;

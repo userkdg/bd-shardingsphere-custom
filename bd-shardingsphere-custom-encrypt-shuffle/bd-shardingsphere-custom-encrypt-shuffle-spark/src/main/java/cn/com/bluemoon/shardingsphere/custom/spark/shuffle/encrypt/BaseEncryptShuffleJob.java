@@ -1,7 +1,8 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ShuffleMode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig.MYSQL;
-import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig.POSTGRESQL;
+import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig.MYSQL;
+import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig.POSTGRESQL;
 
 /**
  * @author Jarod.Kong

@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
+package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 
 import lombok.Getter;
 

@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.cli;
+package cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;

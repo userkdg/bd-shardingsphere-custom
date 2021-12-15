@@ -1,5 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmFactory;

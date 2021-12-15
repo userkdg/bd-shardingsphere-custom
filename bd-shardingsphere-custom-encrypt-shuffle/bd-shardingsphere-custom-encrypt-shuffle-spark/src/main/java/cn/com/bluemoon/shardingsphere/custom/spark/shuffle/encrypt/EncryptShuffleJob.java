@@ -1,5 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.FilterFunction;

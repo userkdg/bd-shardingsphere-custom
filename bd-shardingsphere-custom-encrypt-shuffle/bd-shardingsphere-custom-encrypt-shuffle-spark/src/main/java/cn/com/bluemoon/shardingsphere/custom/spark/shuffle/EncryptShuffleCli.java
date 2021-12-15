@@ -1,10 +1,10 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.cli.AdvCli;
-import cn.com.bluemoon.shardingsphere.custom.spark.cli.CliRunner;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli.AdvCli;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli.CliRunner;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptShuffleJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;

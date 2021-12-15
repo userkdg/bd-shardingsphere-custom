@@ -1,7 +1,5 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
+package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleMode;
-import com.google.common.annotations.VisibleForTesting;
 import lombok.*;
 
 import java.io.Serializable;
@@ -13,6 +11,7 @@ import java.util.Properties;
  */
 @Getter
 @Setter
+@ToString
 public class EncryptGlobalConfig implements Serializable {
 
     public static final String MYSQL = "mysql";
@@ -58,7 +57,6 @@ public class EncryptGlobalConfig implements Serializable {
         return convertJdbcUrl(targetUrl, multiBatchUrlConfig);
     }
 
-    @VisibleForTesting
     public String convertJdbcUrl(String targetUrl, boolean multiBatchConfig) {
         if (targetUrl != null) {
             String url = targetUrl;
@@ -123,7 +121,7 @@ public class EncryptGlobalConfig implements Serializable {
 
     @Getter
     @RequiredArgsConstructor
-    public static class EncryptRule implements Serializable{
+    public static class EncryptRule implements Serializable {
         /**
          * 类型：AES/ MD5
          */
