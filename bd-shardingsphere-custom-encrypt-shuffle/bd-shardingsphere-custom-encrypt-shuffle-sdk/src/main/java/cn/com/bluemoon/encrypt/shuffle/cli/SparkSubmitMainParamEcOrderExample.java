@@ -12,26 +12,26 @@ import java.util.Properties;
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkSubmitMainParamExample {
+public class SparkSubmitMainParamEcOrderExample {
     private static String exampleArg = "";
 
     static {
         EncryptGlobalConfig config = new EncryptGlobalConfig();
-        config.setSourceUrl("jdbc:mysql://192.168.234.4:3304/db_for_sharding_1?user=ds_sync_struct&password=JmMBtXTz");
-        config.setTargetUrl("jdbc:mysql://192.168.234.4:3304/db_for_sharding_1?user=ds_sync_struct&password=JmMBtXTz");
-        config.setRuleTableName("t_user_info_encrypt_v3");
+        config.setSourceUrl("jdbc:mysql://192.168.234.7:3306/ec_order?user=shproxy_morder&password=9kD6sN4qMIwN");
+        config.setTargetUrl("jdbc:mysql://192.168.234.7:3306/ec_order?user=shproxy_morder&password=9kD6sN4qMIwN");
+        String tableName = "ec_oms_order";
+        config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
-                new EncryptGlobalConfig.FieldInfo("id")
+                new EncryptGlobalConfig.FieldInfo("order_code")
         ));
-        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("id"));
+        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("order_code"));
         config.setOnYarn(true);
-        config.setJobName("bd-spark-encrypt-shuffle-t_user_info_encrypt_v3");
+        config.setJobName("bd-spark-encrypt-shuffle-" + tableName);
         Properties props = new Properties();
-        props.put("aes-key-value", "123456abc");
+        props.put("aes-key-value", "wlf1d5mmal2xsttr");
         config.setPlainCols(
                 Arrays.asList(
-                        new EncryptGlobalConfig.FieldInfo("password", new EncryptGlobalConfig.EncryptRule("AES", props)),
-                        new EncryptGlobalConfig.FieldInfo("account", new EncryptGlobalConfig.EncryptRule("AES", props))
+                        new EncryptGlobalConfig.FieldInfo("address", new EncryptGlobalConfig.EncryptRule("AES", props))
                 )
         );
         config.setShuffleMode(ShuffleMode.ReShuffle);

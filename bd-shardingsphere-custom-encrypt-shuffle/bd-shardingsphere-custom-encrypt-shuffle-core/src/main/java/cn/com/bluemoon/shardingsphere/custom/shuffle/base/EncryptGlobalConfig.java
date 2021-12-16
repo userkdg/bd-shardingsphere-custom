@@ -3,7 +3,9 @@ package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 import lombok.*;
 
 import java.io.Serializable;
+import java.sql.JDBCType;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -31,6 +33,15 @@ public class EncryptGlobalConfig implements Serializable {
      * pri_1 and pri_2
      */
     private List<FieldInfo> primaryCols;
+
+    /**
+     * 分区字段信息
+     */
+    private FieldInfo partitionCol;
+
+    public Optional<FieldInfo> getPartitionColOpt() {
+        return Optional.ofNullable(partitionCol);
+    }
 
     private boolean onYarn = true;
 

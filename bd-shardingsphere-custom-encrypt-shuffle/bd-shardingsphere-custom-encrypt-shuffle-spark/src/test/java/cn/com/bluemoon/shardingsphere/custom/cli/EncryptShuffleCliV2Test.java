@@ -43,7 +43,7 @@ public class EncryptShuffleCliV2Test {
         System.out.println(json);
         config.setMultiBatchUrlConfig(true);
         EncryptGlobalConfig configEq = EncryptGlobalConfigSwapper.swapToConfig(json);
-        this.args = new String[]{"-c=" + json};
+        this.args = new String[]{"-c " + json};
     }
 
 

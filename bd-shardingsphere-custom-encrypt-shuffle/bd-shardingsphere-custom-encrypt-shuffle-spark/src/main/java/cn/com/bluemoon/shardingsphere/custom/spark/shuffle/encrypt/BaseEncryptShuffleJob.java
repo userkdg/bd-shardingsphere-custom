@@ -13,12 +13,11 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
+import org.apache.spark.sql.jdbc.JdbcType;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.JDBCType;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig.MYSQL;
@@ -31,11 +30,11 @@ import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalCo
 @Slf4j
 @Getter
 public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
-    static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
     protected static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
     protected static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     protected static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "1000");
-
+    static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
+    private static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
     // must static
     protected static Broadcast<EncryptGlobalConfig> globalConfigBroadcast;
     protected final EncryptGlobalConfig config;
@@ -77,7 +76,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
         }
         prop.put(JDBCOptions.JDBC_URL(), config.getConvertSourceUrl());
         ShuffleMode shuffleMode = config.getShuffleMode();
-        String dbTable = getDbTableByMode(shuffleMode);
+        String dbTable = getDbTableByMode(shuffleMode, config.getDatabaseType());
         prop.put(JDBCOptions.JDBC_TABLE_NAME(), dbTable);
         prop.put(JDBCOptions.JDBC_PARTITION_COLUMN(), config.getPrimaryCols().get(0).getName());
         prop.put(JDBCOptions.JDBC_NUM_PARTITIONS(), parallelNum);
@@ -87,12 +86,13 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
         return prop;
     }
 
-    protected String getDbTableByMode(ShuffleMode shuffleMode) {
+    protected String getDbTableByMode(ShuffleMode shuffleMode, String databaseType) {
         if (shuffleMode == null) {
             shuffleMode = ShuffleMode.ReShuffle;
         }
         // 2021/12/1 只查询相关字段
-        List<String> fields = config.getPrimaryCols().stream().map(EncryptGlobalConfig.FieldInfo::getName).collect(Collectors.toList());
+        List<String> primaryFields = config.getPrimaryCols().stream().map(EncryptGlobalConfig.FieldInfo::getName).collect(Collectors.toList());
+        List<String> fields = new ArrayList<>(primaryFields);
         List<String> plainCols = config.getPlainCols().stream().map(EncryptGlobalConfig.FieldInfo::getName).collect(Collectors.toList());
         fields.addAll(plainCols);
         // 明文列对应的密文列 2021/12/1 定义行为，重跑洗数什么模式，全覆盖（全部重跑），获取明文列对应的密文列中为null的数据进行加密洗数
@@ -106,7 +106,18 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
             String whereCipherNullSql = String.join(" and ", fieldCiphers);
             dbTable = String.format("(select %s from %s where %s ) as %s_tmp", String.join(",", fields), config.getRuleTableName(), whereCipherNullSql, config.getRuleTableName());
         } else {
-            dbTable = String.format("(select %s from %s where 1=1 ) as %s_tmp", String.join(",", fields), config.getRuleTableName(), config.getRuleTableName());
+            if ("mysql".equalsIgnoreCase(databaseType)) {
+                String alias = "a";
+                String fieldStr = fields.stream().map(s -> String.format("%s.%s", alias, s)).collect(Collectors.joining(","));
+                // 分区字段
+                EncryptGlobalConfig.FieldInfo partitionCol = config.getPartitionColOpt().orElse( config.getPrimaryCols().get(0));
+                // partitionCol.getType()只能外部提供字段类型
+                String dynamicPartitionField = String.format(" CAST(%s.%s AS SIGNED) AS %s , ", alias, partitionCol.getName(), JDBC_PARTITION_FIELD_ID);
+                String tableAlias = String.format("%s as %s", config.getRuleTableName(), alias);
+                dbTable = String.format("(select %s %s from %s where 1=1 ) as %s_tmp", dynamicPartitionField, fieldStr, tableAlias, config.getRuleTableName() );
+            } else {
+                dbTable = String.format("(select %s from %s where 1=1 ) as %s_tmp", String.join(",", fields), config.getRuleTableName(), config.getRuleTableName());
+            }
         }
         return dbTable;
     }
