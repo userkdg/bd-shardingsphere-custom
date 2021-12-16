@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.encrypt.algorithm;
+package org.apache.shardingsphere.encrypt.algorithmV1;
 
 import lombok.Getter;
 import lombok.Setter;
