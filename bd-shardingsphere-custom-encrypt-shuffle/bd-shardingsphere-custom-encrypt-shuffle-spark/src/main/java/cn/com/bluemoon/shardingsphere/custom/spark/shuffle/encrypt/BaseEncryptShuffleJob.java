@@ -97,7 +97,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
         fields.addAll(plainCols);
         // 明文列对应的密文列 2021/12/1 定义行为，重跑洗数什么模式，全覆盖（全部重跑），获取明文列对应的密文列中为null的数据进行加密洗数
         final String whereSql = getSqlWhere(shuffleMode, fields, plainCols);
-        final String fieldProjectionsStr = getSqlProjectionsStr(shuffleMode, fields, plainCols);
+        final String fieldProjectionsStr = getSqlProjectionsStr(shuffleMode, fields, plainCols, databaseType);
         final String tableAlias = String.format("%s AS %s", config.getRuleTableName(), SPARK_JDBC_DBTABLE_ALIAS);
         final String finalTableTmpName = config.getRuleTableName() + "_tmp";
         String finalDbTableSql = "(" +
@@ -123,12 +123,18 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
         return "1=1";
     }
 
-    private String getSqlProjectionsStr(ShuffleMode shuffleMode, List<String> fields, List<String> plainCols) {
+    private String getSqlProjectionsStr(ShuffleMode shuffleMode, List<String> fields, List<String> plainCols, String databaseType) {
         if (ShuffleMode.ReShuffle.equals(shuffleMode)) {
             // 分区字段
             EncryptGlobalConfig.FieldInfo partitionCol = config.getPartitionColOpt().orElse(config.getPrimaryCols().get(0));
             // partitionCol.getType()只能外部提供字段类型
-            String dynamicPartitionField = String.format(" CAST(%s AS SIGNED) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            String dynamicPartitionField = "";
+            if ("mysql".equalsIgnoreCase(databaseType)) {
+                dynamicPartitionField = String.format(" CAST(%s AS SIGNED) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            }
+            if ("postgresql".equalsIgnoreCase(databaseType)){
+                dynamicPartitionField = String.format(" CAST(%s AS INTEGER) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            }
             List<String> fieldProjections = new LinkedList<>();
             fieldProjections.add(dynamicPartitionField);
             List<String> actualFields = fields.stream().map(this::wrappedFieldAlias).collect(Collectors.toList());
