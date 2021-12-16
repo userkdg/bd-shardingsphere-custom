@@ -31,7 +31,9 @@ public class EncryptShuffleJobV2 extends BaseEncryptShuffleJob {
     @Override
     public void doShuffle(Dataset<Row> dataset, StructType schema, EncryptGlobalConfig globalConfig) {
         JavaRDD<Row> rowJavaRDD = dataset.toJavaRDD();
-        rowJavaRDD.mapPartitions(new EncryptFlatMapFunction(globalConfigBroadcast))
+        rowJavaRDD
+                .repartition(Integer.parseInt(parallelNum))
+                .mapPartitions(new EncryptFlatMapFunction(globalConfigBroadcast))
                 .foreachPartition(new EncryptForeachPartitionFunction(schema, globalConfigBroadcast));
     }
 }

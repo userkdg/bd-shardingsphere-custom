@@ -30,7 +30,7 @@ public class EncryptShuffleCliV2TestEcOrder {
         config.setPrimaryCols(Arrays.asList(
                 new EncryptGlobalConfig.FieldInfo("order_code")
         ));
-        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("create_time"));
+        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("order_code"));
         config.setOnYarn(false);
         config.setJobName("bd-spark-encrypt-shuffle-" + tableName);
         Properties props = new Properties();
