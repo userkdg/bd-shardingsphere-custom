@@ -75,6 +75,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
             Dataset<Row> maxIncrTimestampDf = spark.read().format("jdbc").options(getSourceJdbcMaxIncrTimestampProps()).load();
             Row topOne = maxIncrTimestampDf.select(config.getIncrTimestampCol()).first();
             curMaxIncrTimestamp = Optional.ofNullable(topOne.getAs(config.getIncrTimestampCol())).map(String::valueOf).orElse(DateUtil.now());
+            log.info("当前洗数阶段增量字段最大值为{}", curMaxIncrTimestamp);
             // 调整方案 普通模式跑一次，若是增量时间类型的就跑多次，直至没有新数据为止
             Dataset<Row> nextDf = spark.read().format("jdbc").options(getSourceJdbcProps()).load();
             Dataset<Row> dfCache = nextDf.cache();
