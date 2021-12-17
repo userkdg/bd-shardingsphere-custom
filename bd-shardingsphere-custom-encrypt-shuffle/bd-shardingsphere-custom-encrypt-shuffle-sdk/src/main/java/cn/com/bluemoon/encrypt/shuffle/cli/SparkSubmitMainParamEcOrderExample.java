@@ -18,16 +18,17 @@ public class SparkSubmitMainParamEcOrderExample {
 
     static {
         EncryptGlobalConfig config = new EncryptGlobalConfig();
-        config.setSourceUrl("jdbc:mysql://192.168.234.7:3306/ec_order?user=shproxy_morder&password=9kD6sN4qMIwN");
-        config.setTargetUrl("jdbc:mysql://192.168.234.7:3306/ec_order?user=shproxy_morder&password=9kD6sN4qMIwN");
-        String tableName = "ec_oms_order";
+        final String dbName = "ec_order";
+        final String tableName = "ec_oms_order";
+        config.setSourceUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
+        config.setTargetUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
                 new EncryptGlobalConfig.FieldInfo("order_code")
         ));
         config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("order_code"));
         config.setOnYarn(true);
-        config.setJobName("bd-spark-encrypt-shuffle-" + tableName);
+        config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
         config.setPlainCols(
