@@ -3,7 +3,6 @@ package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 import lombok.*;
 
 import java.io.Serializable;
-import java.sql.JDBCType;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
@@ -39,13 +38,24 @@ public class EncryptGlobalConfig implements Serializable {
      */
     private FieldInfo partitionCol;
 
-    public Optional<FieldInfo> getPartitionColOpt() {
-        return Optional.ofNullable(partitionCol);
-    }
+    /**
+     * 增量时间字段名，用于划分时间区域
+     */
+    private String incrTimestampCol;
 
+    /**
+     * 自定义拉取数据库的查询条件，不需要 加where
+     * eg: 1=1 and 1=1 ...
+     */
+    private String customExtractWhereSql;
+    /**
+     * 是否提交到yarn资源上
+     */
     private boolean onYarn = true;
-
-    private String jobName = "KMS洗数程序 On Spark";
+    /**
+     * 洗数作业名称
+     */
+    private String jobName = "bd-spark-KMS-洗数程序";
     /**
      * 字段名称+类型，有序
      */
@@ -53,12 +63,15 @@ public class EncryptGlobalConfig implements Serializable {
     /**
      * 定义洗数模式
      */
-    private ShuffleMode shuffleMode = ShuffleMode.ReShuffle;
-
+    private ExtractMode extractMode;
     /**
      * 转换url是否支持multi batch操作
      */
     private boolean multiBatchUrlConfig;
+
+    public Optional<FieldInfo> getPartitionColOpt() {
+        return Optional.ofNullable(partitionCol);
+    }
 
     public String getConvertSourceUrl() {
         return convertJdbcUrl(sourceUrl, multiBatchUrlConfig);

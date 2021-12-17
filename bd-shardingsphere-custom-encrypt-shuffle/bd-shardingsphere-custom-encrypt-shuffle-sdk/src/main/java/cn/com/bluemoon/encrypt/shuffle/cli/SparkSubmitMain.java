@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SparkSubmitMain {
 
-    private static final String exampleArg = "{\"sourceUrl\":\"jdbc:mysql://192.168.234.4:3304/db_for_sharding_1?user\\u003dds_sync_struct\\u0026password\\u003dJmMBtXTz\",\"targetUrl\":\"jdbc:mysql://192.168.234.4:3304/db_for_sharding_1?user\\u003dds_sync_struct\\u0026password\\u003dJmMBtXTz\",\"ruleTableName\":\"t_user_info_encrypt_v3\",\"primaryCols\":[{\"name\":\"id\"}],\"onYarn\":false,\"jobName\":\"bd-spark-encrypt-shuffle-t_user_info_encrypt_v3\",\"plainCols\":[{\"name\":\"password\",\"encryptRule\":{\"type\":\"AES\",\"props\":{\"aes-key-value\":\"123456abc\"}}},{\"name\":\"account\",\"encryptRule\":{\"type\":\"AES\",\"props\":{\"aes-key-value\":\"123456abc\"}}}],\"shuffleMode\":\"ReShuffle\",\"multiBatchUrlConfig\":false}";
+    private static final String exampleArg = "{\"sourceUrl\":\"jdbc:mysql://192.168.234.4:3304/db_for_sharding_1?user\\u003dds_sync_struct\\u0026password\\u003dJmMBtXTz\",\"targetUrl\":\"jdbc:mysql://192.168.234.4:3304/db_for_sharding_1?user\\u003dds_sync_struct\\u0026password\\u003dJmMBtXTz\",\"ruleTableName\":\"t_user_info_encrypt_v3\",\"primaryCols\":[{\"name\":\"id\"}],\"onYarn\":false,\"jobName\":\"bd-spark-encrypt-shuffle-t_user_info_encrypt_v3\",\"plainCols\":[{\"name\":\"password\",\"encryptRule\":{\"type\":\"AES\",\"props\":{\"aes-key-value\":\"123456abc\"}}},{\"name\":\"account\",\"encryptRule\":{\"type\":\"AES\",\"props\":{\"aes-key-value\":\"123456abc\"}}}],\"ExtractMode\":\"ReShuffle\",\"multiBatchUrlConfig\":false}";
 
     public static void main(String[] args) {
         String jsonParam;

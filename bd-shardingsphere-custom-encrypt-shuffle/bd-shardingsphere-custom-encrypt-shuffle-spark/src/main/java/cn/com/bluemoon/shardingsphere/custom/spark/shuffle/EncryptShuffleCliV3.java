@@ -10,11 +10,11 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jarod.Kong
  */
 @Slf4j
-public class EncryptShuffleCliV2 extends BaseEncryptCli {
+public class EncryptShuffleCliV3 extends BaseEncryptCli {
 
     public static void main(String[] args) {
-        String simpleName = EncryptShuffleCliV2.class.getSimpleName();
-        AdvCli.initRunner(args, simpleName, new EncryptShuffleCliV2());
+        String simpleName = EncryptShuffleCliV3.class.getSimpleName();
+        AdvCli.initRunner(args, simpleName, new EncryptShuffleCliV3());
         log.info("退出{}的main()方法", simpleName);
 //        System.exit(0);
     }

@@ -1,7 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCliV2;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ShuffleMode;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
 import com.google.common.collect.Lists;
@@ -38,7 +38,7 @@ public class EncryptShuffleCliV2Test {
                         new EncryptGlobalConfig.FieldInfo("account", new EncryptGlobalConfig.EncryptRule("AES", props))
                 )
         );
-        config.setShuffleMode(ShuffleMode.ReShuffle);
+        config.setExtractMode(ExtractMode.All);
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         System.out.println(json);
         config.setMultiBatchUrlConfig(true);

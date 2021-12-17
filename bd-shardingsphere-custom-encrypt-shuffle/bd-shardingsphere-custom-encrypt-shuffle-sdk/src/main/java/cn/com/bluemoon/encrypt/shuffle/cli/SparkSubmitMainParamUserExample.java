@@ -12,32 +12,32 @@ import java.util.Properties;
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkSubmitMainParamEcOrderExample {
+public class SparkSubmitMainParamUserExample {
     private static String exampleArg = "";
     private static String jobName = "";
 
     static {
         EncryptGlobalConfig config = new EncryptGlobalConfig();
         final String dbName = "ec_order";
-        final String tableName = "ec_oms_order";
-        config.setSourceUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
-        config.setTargetUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
+        final String tableName = "sys_user";
+        config.setSourceUrl(String.format("jdbc:mysql://192.168.234.8:4401/%s?user=sharding&password=HGbZYrqlpr25", dbName));
+        config.setTargetUrl(String.format("jdbc:mysql://192.168.234.8:4401/%s?user=sharding&password=HGbZYrqlpr25", dbName));
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
-                new EncryptGlobalConfig.FieldInfo("order_code")
+                new EncryptGlobalConfig.FieldInfo("id")
         ));
-        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("order_code"));
+        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("id"));
         config.setOnYarn(true);
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
         config.setPlainCols(
                 Arrays.asList(
-                        new EncryptGlobalConfig.FieldInfo("address", new EncryptGlobalConfig.EncryptRule("AES", props))
+                        new EncryptGlobalConfig.FieldInfo("phone", new EncryptGlobalConfig.EncryptRule("AES", props))
                 )
         );
         config.setExtractMode(ExtractMode.WithIncrTimestamp);
-        config.setIncrTimestampCol("last_update_time");
+        config.setIncrTimestampCol("op_time");
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         log.debug("mock json example:{}", json);
         config.setMultiBatchUrlConfig(true);
