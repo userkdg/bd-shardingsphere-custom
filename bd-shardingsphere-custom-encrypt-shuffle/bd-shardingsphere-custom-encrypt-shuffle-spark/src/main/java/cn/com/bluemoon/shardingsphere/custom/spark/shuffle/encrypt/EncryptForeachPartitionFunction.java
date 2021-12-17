@@ -26,7 +26,6 @@ public class EncryptForeachPartitionFunction extends BaseEncryptForeachPartition
         try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
             List<String> cipherCols = getCipherCols(globalConfig.getPlainCols());
             final String updateDynamicSql = getUpdateDynamicSql(primaryCols, cipherCols);
-            log.info("更新SQL=>{}", updateDynamicSql);
             // update batch
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
                 int batchSize = Integer.parseInt(EncryptShuffleJob.BATCH_SIZE);
@@ -45,16 +44,18 @@ public class EncryptForeachPartitionFunction extends BaseEncryptForeachPartition
                     ps.addBatch();
                     size++;
                     if (size % batchSize == 0) {
-                        ps.executeBatch();
+                        int[] batch = ps.executeBatch();
                         ps.clearBatch();
+                        log.info("批量中：更新SQL=>{},批次提交：{}条，执行：{}条", updateDynamicSql, size, batch);
                     }
                 }
-                ps.executeBatch();
+                int[] batch = ps.executeBatch();
                 ps.clearBatch();
+                log.info("批量Last: 更新SQL=>{},批次提交：{}条，执行：{}条", updateDynamicSql, size, batch);
             }
         }
     }
-    
+
     private String getUpdateDynamicSql(List<EncryptGlobalConfig.FieldInfo> primaryCols, List<String> cipherCols) {
         StringBuilder sb = new StringBuilder();
         sb.append("update ").append(globalConfig.getRuleTableName()).append(" set ");
