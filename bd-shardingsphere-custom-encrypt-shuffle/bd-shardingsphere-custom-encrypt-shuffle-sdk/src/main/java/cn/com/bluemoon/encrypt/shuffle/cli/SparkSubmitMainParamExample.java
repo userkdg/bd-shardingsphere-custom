@@ -13,6 +13,7 @@ import java.util.Properties;
  */
 @Slf4j
 public class SparkSubmitMainParamExample {
+    private static String jobName = "";
     private static String exampleArg = "";
 
     static {
@@ -25,7 +26,8 @@ public class SparkSubmitMainParamExample {
         ));
         config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("id"));
         config.setOnYarn(true);
-        config.setJobName("bd-spark-encrypt-shuffle-t_user_info_encrypt_v3");
+        String tableName = "t_user_info_encrypt_v3";
+        config.setJobName("bd-spark-encrypt-shuffle-" + tableName);
         Properties props = new Properties();
         props.put("aes-key-value", "123456abc");
         config.setPlainCols(
@@ -41,9 +43,10 @@ public class SparkSubmitMainParamExample {
         EncryptGlobalConfig encryptGlobalConfig = EncryptGlobalConfigSwapper.swapToConfig(json);
         log.debug("json to bean:{}", encryptGlobalConfig);
         exampleArg = json;
+        jobName = tableName;
     }
 
     public static void main(String[] args) {
-        SparkSubmitMain.main(new String[]{exampleArg});
+        SparkSubmitMain.main(new String[]{exampleArg, jobName});
     }
 }

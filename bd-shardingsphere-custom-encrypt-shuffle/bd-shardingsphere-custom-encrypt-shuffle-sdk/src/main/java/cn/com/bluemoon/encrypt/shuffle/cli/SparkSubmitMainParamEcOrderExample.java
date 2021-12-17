@@ -14,6 +14,7 @@ import java.util.Properties;
 @Slf4j
 public class SparkSubmitMainParamEcOrderExample {
     private static String exampleArg = "";
+    private static String jobName = "";
 
     static {
         EncryptGlobalConfig config = new EncryptGlobalConfig();
@@ -41,9 +42,10 @@ public class SparkSubmitMainParamEcOrderExample {
         EncryptGlobalConfig encryptGlobalConfig = EncryptGlobalConfigSwapper.swapToConfig(json);
         log.debug("json to bean:{}", encryptGlobalConfig);
         exampleArg = json;
+        jobName = tableName;
     }
 
     public static void main(String[] args) {
-        SparkSubmitMain.main(new String[]{exampleArg});
+        SparkSubmitMain.main(new String[]{exampleArg, jobName});
     }
 }

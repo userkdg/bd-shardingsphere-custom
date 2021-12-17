@@ -34,7 +34,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
     private static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
     private static final String SPARK_JDBC_DBTABLE_ALIAS = "a";
-    private static final String JDBC_PROXY_CIPHER_FILED_SUFFIX = "_cipher";
+    public static final String JDBC_PROXY_CIPHER_FILED_SUFFIX = "_cipher";
 
     // must static
     protected static Broadcast<EncryptGlobalConfig> globalConfigBroadcast;

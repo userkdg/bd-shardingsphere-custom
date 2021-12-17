@@ -18,13 +18,18 @@ public class SparkSubmitMain {
             throw new RuntimeException("必须传入作业参数，如：" + exampleArg);
         }
         jsonParam = args[0];
-        String sshUser = "data_tool";
-        String sshHost = "192.168.235.12";
-        String password = "tool@aeb56c";
+        String jobName = "default-job-name";
+        if (args.length > 1) {
+            jobName = args[1];
+        }
+        final String sshUser = "data_tool";
+        final String sshHost = "192.168.235.12";
+        final String password = "tool@aeb56c";
         int sshPort = 22;
-
-        final String command = String.format("sh /home/data_tool/bd-spark/bd-spark-encrypt-shuffle/run-spark-client-local.sh '-c %s'", jsonParam);
-        log.info("accept args:{}", jsonParam);
+        final String command = String.format("sh /home/data_tool/bd-spark/bd-spark-encrypt-shuffle/run-spark-client-local.sh '-c %s' '%s'",
+                jsonParam, jobName);
+        log.info("accept arg1:{}", jsonParam);
+        log.info("accept arg2:{}", jobName);
         log.info("command:{}", command);
         boolean status = SshUtils.client()
                 .sshInfo(PtSsh.builder().host(sshHost).username(sshUser).port(sshPort).password(password).build())

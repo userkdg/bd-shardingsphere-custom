@@ -15,7 +15,7 @@ import java.util.*;
  * @author Jarod.Kong
  */
 public class EncryptFlatMapFunction implements FlatMapFunction<Iterator<Row>, Map<String, Object>> {
-    public static final String CIPHER_SUFFIX = "_cipher";
+    public static final String CIPHER_SUFFIX = BaseEncryptShuffleJob.JDBC_PROXY_CIPHER_FILED_SUFFIX;
 
     static {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
@@ -40,7 +40,7 @@ public class EncryptFlatMapFunction implements FlatMapFunction<Iterator<Row>, Ma
     }
 
     @Override
-    public Iterator<Map<String, Object>> call(Iterator<Row> iterator) throws Exception {
+    public Iterator<Map<String, Object>> call(Iterator<Row> iterator) {
         List<Map<String, Object>> rows = new ArrayList<>();
         while (iterator.hasNext()) {
             Row row = iterator.next();
