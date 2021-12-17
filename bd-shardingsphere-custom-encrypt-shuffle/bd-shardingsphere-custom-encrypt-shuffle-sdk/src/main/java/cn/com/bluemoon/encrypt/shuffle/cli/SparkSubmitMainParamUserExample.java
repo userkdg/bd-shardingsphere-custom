@@ -38,9 +38,9 @@ public class SparkSubmitMainParamUserExample {
         );
         config.setExtractMode(ExtractMode.WithIncrTimestamp);
         config.setIncrTimestampCol("op_time");
+        config.setMultiBatchUrlConfig(true);
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         log.debug("mock json example:{}", json);
-        config.setMultiBatchUrlConfig(true);
         EncryptGlobalConfig encryptGlobalConfig = EncryptGlobalConfigSwapper.swapToConfig(json);
         log.debug("json to bean:{}", encryptGlobalConfig);
         exampleArg = json;
@@ -48,6 +48,6 @@ public class SparkSubmitMainParamUserExample {
     }
 
     public static void main(String[] args) {
-        SparkSubmitMain.main(new String[]{exampleArg, jobName});
+//        SparkSubmitMain.main(new String[]{exampleArg, jobName});
     }
 }
