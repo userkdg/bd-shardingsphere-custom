@@ -46,13 +46,13 @@ public class EncryptForeachPartitionFunction extends BaseEncryptForeachPartition
                     if (size % batchSize == 0) {
                         int[] batch = ps.executeBatch();
                         ps.clearBatch();
-                        log.info("批量：更新SQL=>{},批次提交：{}条，执行：{}条", updateDynamicSql, size, batch);
+                        log.info("批量：更新SQL=>{},批次提交：{}条，执行：{}条", updateDynamicSql, size, batch.length);
                     }
                 }
                 if (size > 0) {
                     int[] batch = ps.executeBatch();
                     ps.clearBatch();
-                    log.info("批量残余: 更新SQL=>{},批次提交：{}条，执行：{}条", updateDynamicSql, size, batch);
+                    log.info("批量残余: 更新SQL=>{},批次提交：{}条，执行：{}条", updateDynamicSql, size, batch.length);
                 }
             }
         }
