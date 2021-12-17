@@ -168,29 +168,36 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
         } else if (ExtractMode.OtherCustom.equals(shuffleMode)) {
             return Optional.ofNullable(config.getCustomExtractWhereSql()).orElse(" 1=1 ");
         } else if (ExtractMode.WithIncrTimestamp.equals(shuffleMode)) {
-            String incrTimestampCol = config.getIncrTimestampCol();
-            Objects.requireNonNull(incrTimestampCol, String.format("%s模式必须填写时间类型增量[%s]字段", ExtractMode.WithIncrTimestamp, "EncryptGlobalConfig.incrTimestampCol"));
-            if (preExtractTimestamp == null) {
-                String currentTimestamp = curMaxIncrTimestamp;
-                String lte = String.format(" %s <= '%s' ",
-                        wrappedFieldAlias(incrTimestampCol), currentTimestamp);
-                preExtractTimestamp = currentTimestamp;
-                return lte;
-            } else {
-                String gte;
-                if (preExtractTimestamp.equals(curMaxIncrTimestamp)) {
-                    gte = String.format(" %s > '%s' ",
-                            wrappedFieldAlias(incrTimestampCol), preExtractTimestamp);
-                } else {
-                    gte = String.format(" %s > '%s' and %s <= '%s' ",
-                            wrappedFieldAlias(incrTimestampCol), preExtractTimestamp,
-                            wrappedFieldAlias(incrTimestampCol), curMaxIncrTimestamp);
-                    preExtractTimestamp = curMaxIncrTimestamp;
-                }
-                return gte;
-            }
+            return whereSqlWithIncrTimestamp();
         }
         return getCustomWhereSql();
+    }
+
+    /**
+     * 分析上一次和当前次 sql where片段
+     */
+    private String whereSqlWithIncrTimestamp() {
+        String incrTimestampCol = config.getIncrTimestampCol();
+        Objects.requireNonNull(incrTimestampCol, String.format("%s模式必须填写时间类型增量[%s]字段", ExtractMode.WithIncrTimestamp, "EncryptGlobalConfig.incrTimestampCol"));
+        if (preExtractTimestamp == null) {
+            String currentTimestamp = curMaxIncrTimestamp;
+            String lte = String.format(" %s <= '%s' ",
+                    wrappedFieldAlias(incrTimestampCol), currentTimestamp);
+            preExtractTimestamp = currentTimestamp;
+            return lte;
+        } else {
+            String gte;
+            if (preExtractTimestamp.equals(curMaxIncrTimestamp)) {
+                gte = String.format(" %s > '%s' ",
+                        wrappedFieldAlias(incrTimestampCol), preExtractTimestamp);
+            } else {
+                gte = String.format(" %s > '%s' and %s <= '%s' ",
+                        wrappedFieldAlias(incrTimestampCol), preExtractTimestamp,
+                        wrappedFieldAlias(incrTimestampCol), curMaxIncrTimestamp);
+                preExtractTimestamp = curMaxIncrTimestamp;
+            }
+            return gte;
+        }
     }
 
     /**
