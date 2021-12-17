@@ -48,6 +48,6 @@ public class SparkSubmitMainParamUserExample {
     }
 
     public static void main(String[] args) {
-//        SparkSubmitMain.main(new String[]{exampleArg, jobName});
+        SparkSubmitMain.main(new String[]{exampleArg, jobName});
     }
 }

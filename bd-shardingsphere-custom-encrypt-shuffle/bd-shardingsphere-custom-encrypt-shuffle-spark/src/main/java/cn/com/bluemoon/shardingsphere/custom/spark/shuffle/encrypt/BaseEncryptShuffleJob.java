@@ -181,8 +181,9 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
         Objects.requireNonNull(incrTimestampCol, String.format("%s模式必须填写时间类型增量[%s]字段", ExtractMode.WithIncrTimestamp, "EncryptGlobalConfig.incrTimestampCol"));
         if (preExtractTimestamp == null) {
             String currentTimestamp = curMaxIncrTimestamp;
-            String lte = String.format(" %s <= '%s' ",
-                    wrappedFieldAlias(incrTimestampCol), currentTimestamp);
+//            String lte = String.format(" %s <= '%s' ", wrappedFieldAlias(incrTimestampCol), currentTimestamp);
+            final String lte = " 1=1 ";
+            log.info("首次洗数直接查询当前表所有数据，where sql=>{}", lte);
             preExtractTimestamp = currentTimestamp;
             return lte;
         } else {
@@ -196,6 +197,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
                         wrappedFieldAlias(incrTimestampCol), curMaxIncrTimestamp);
                 preExtractTimestamp = curMaxIncrTimestamp;
             }
+            log.info("next 发现增量数据进行增量字段条件查询，where sql=>{}", gte);
             return gte;
         }
     }
