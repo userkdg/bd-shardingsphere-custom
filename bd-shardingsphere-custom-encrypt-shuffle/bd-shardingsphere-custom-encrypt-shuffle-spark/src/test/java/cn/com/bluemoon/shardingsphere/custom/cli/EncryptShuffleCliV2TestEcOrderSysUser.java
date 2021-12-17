@@ -44,9 +44,9 @@ public class EncryptShuffleCliV2TestEcOrderSysUser {
         );
         config.setExtractMode(ExtractMode.WithIncrTimestamp);
         config.setIncrTimestampCol("op_time");
+        config.setMultiBatchUrlConfig(true);
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         log.debug("mock json example:{}", json);
-        config.setMultiBatchUrlConfig(true);
         EncryptGlobalConfig encryptGlobalConfig = EncryptGlobalConfigSwapper.swapToConfig(json);
         log.debug("json to bean:{}", encryptGlobalConfig);
         this.args = new String[]{"-c " + json, tableName};

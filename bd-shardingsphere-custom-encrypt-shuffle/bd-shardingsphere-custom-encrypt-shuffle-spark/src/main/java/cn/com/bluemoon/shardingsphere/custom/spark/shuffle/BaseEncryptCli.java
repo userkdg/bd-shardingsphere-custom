@@ -35,8 +35,9 @@ public abstract class BaseEncryptCli implements CliRunner {
         String configStr = cmdLine.getOptionValue(PARAM_JOB_CONFIG);
         log.info("=====================启动参数:{}", configStr);
         EncryptGlobalConfig config = EncryptGlobalConfigSwapper.swapToConfig(configStr);
-        config.setMultiBatchUrlConfig(true);
-        log.info("启用jdbc multi batch execute Mode");
+        if (config.isMultiBatchUrlConfig()) {
+            log.info("启用jdbc multi batch execute Mode");
+        }
         EncryptShuffle encryptShuffleJob = getEncryptShuffleJob(config);
         encryptShuffleJob.init().shuffle();
     }

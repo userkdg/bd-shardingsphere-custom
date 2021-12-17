@@ -111,7 +111,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCliV2</mainClass>
+                            <mainClass>cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCliV3</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

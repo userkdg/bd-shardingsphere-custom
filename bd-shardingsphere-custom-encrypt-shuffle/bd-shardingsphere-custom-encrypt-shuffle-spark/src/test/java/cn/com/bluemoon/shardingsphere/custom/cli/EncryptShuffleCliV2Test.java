@@ -39,9 +39,9 @@ public class EncryptShuffleCliV2Test {
                 )
         );
         config.setExtractMode(ExtractMode.All);
+        config.setMultiBatchUrlConfig(true);
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         System.out.println(json);
-        config.setMultiBatchUrlConfig(true);
         EncryptGlobalConfig configEq = EncryptGlobalConfigSwapper.swapToConfig(json);
         this.args = new String[]{"-c " + json};
     }
