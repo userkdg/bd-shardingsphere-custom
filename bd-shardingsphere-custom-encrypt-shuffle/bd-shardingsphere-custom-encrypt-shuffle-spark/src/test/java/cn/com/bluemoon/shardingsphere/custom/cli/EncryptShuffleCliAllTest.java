@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCli;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.ShardingProxyShuffleCli;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
@@ -61,7 +61,7 @@ public class EncryptShuffleCliAllTest {
         configs.stream().map(EncryptGlobalConfigSwapper.gson::toJson)
                 .map(s -> new String[]{"-c=" + s})
                 .forEach(s -> {
-                    EncryptShuffleCli.main(s);
+                    ShardingProxyShuffleCli.main(s);
                 });
     }
 

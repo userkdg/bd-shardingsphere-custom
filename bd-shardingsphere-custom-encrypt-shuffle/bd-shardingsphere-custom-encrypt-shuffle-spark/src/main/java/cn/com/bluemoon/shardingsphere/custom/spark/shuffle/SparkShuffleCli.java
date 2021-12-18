@@ -10,11 +10,11 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jarod.Kong
  */
 @Slf4j
-public class EncryptShuffleCliV3 extends BaseEncryptCli {
+public class SparkShuffleCli extends BaseShuffleCli {
 
     public static void main(String[] args) {
-        String simpleName = EncryptShuffleCliV3.class.getSimpleName();
-        AdvCli.initRunner(args, simpleName, new EncryptShuffleCliV3());
+        String simpleName = SparkShuffleCli.class.getSimpleName();
+        AdvCli.initRunner(args, simpleName, new SparkShuffleCli());
         log.info("退出{}的main()方法", simpleName);
 //        System.exit(0);
     }
@@ -23,4 +23,6 @@ public class EncryptShuffleCliV3 extends BaseEncryptCli {
     protected EncryptShuffle getEncryptShuffleJob(EncryptGlobalConfig config) {
         return new EncryptShuffleJobV2(config);
     }
+
+
 }

@@ -3,10 +3,10 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleJob;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.spark.SparkConf;
@@ -27,31 +27,45 @@ import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalCo
 /**
  * @author Jarod.Kong
  */
-@RequiredArgsConstructor
 @Slf4j
 @Getter
 public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     public static final String JDBC_PROXY_CIPHER_FILED_SUFFIX = "_cipher";
     public static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
     public static final String SPARK_JDBC_DBTABLE_ALIAS = "a";
+
     protected static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
     protected static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     protected static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
-    static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
+
+    protected static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
     // must static
     protected static Broadcast<EncryptGlobalConfig> globalConfigBroadcast;
+
     protected final EncryptGlobalConfig config;
+
     private volatile String preExtractTimestamp;
     private volatile String curMaxIncrTimestamp;
 
-    public EncryptShuffle init() {
+    public BaseEncryptShuffleJob(EncryptGlobalConfig config) {
+        this.config = config;
+    }
+
+    public void init() {
+        log.info("start job !!");
         if (config.getPlainCols() == null || config.getPlainCols().isEmpty()) {
             throw new RuntimeException("洗数字段不可为空");
         }
-        return this;
     }
 
+    @Override
     public void shuffle() {
+        init();
+        doShuffle();
+        finish();
+    }
+
+    protected void doShuffle() {
         try (SparkSession spark = getSparkSession(config.isOnYarn())) {
             if (ExtractMode.WithIncrTimestamp.equals(config.getExtractMode())) {
                 tryReShuffleWithIncFieldExtractMode(spark);
@@ -200,7 +214,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
                         wrappedFieldAlias(incrTimestampCol), curMaxIncrTimestamp);
                 preExtractTimestamp = curMaxIncrTimestamp;
             }
-            log.info("next 发现增量数据进行增量字段条件查询，where sql=>{}", gte);
+            log.info("next: 增量数据进行增量字段条件查询，where sql=>{}", gte);
             return gte;
         }
     }

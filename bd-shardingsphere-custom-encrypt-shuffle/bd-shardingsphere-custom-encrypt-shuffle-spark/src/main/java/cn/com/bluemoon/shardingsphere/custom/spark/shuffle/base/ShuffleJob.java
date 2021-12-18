@@ -3,6 +3,6 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 /**
  * @author Jarod.Kong
  */
-public interface EncryptShuffle extends BaseShuffle {
+public interface ShuffleJob {
 
 }

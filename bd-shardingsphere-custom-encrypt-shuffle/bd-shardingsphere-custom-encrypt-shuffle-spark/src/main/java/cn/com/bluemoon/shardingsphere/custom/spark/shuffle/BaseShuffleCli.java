@@ -4,6 +4,7 @@ import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli.AdvCli;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli.CliRunner;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffle;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptShuffleJobV2;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +15,7 @@ import org.apache.commons.cli.Options;
  * @author Jarod.Kong
  */
 @Slf4j
-public abstract class BaseEncryptCli implements CliRunner {
+public abstract class BaseShuffleCli implements CliRunner {
     protected static final String PARAM_JOB_CONFIG = "config";
 
     @Override
@@ -31,15 +32,15 @@ public abstract class BaseEncryptCli implements CliRunner {
 
     @Override
     public void start(CommandLine cmdLine) {
-        log.info("=====================加解密-明文->密文-洗数作业V2开始===================");
+        log.info("=====================加解密-明文->密文-洗数作业开始===================");
         String configStr = cmdLine.getOptionValue(PARAM_JOB_CONFIG);
         log.info("=====================启动参数:{}", configStr);
         EncryptGlobalConfig config = EncryptGlobalConfigSwapper.swapToConfig(configStr);
         if (config.isMultiBatchUrlConfig()) {
             log.info("启用jdbc multi batch execute Mode");
         }
-        EncryptShuffle encryptShuffleJob = getEncryptShuffleJob(config);
-        encryptShuffleJob.init().shuffle();
+        BaseShuffle encryptShuffleJob = getEncryptShuffleJob(config);
+        encryptShuffleJob.shuffle();
     }
 
     protected abstract EncryptShuffle getEncryptShuffleJob(EncryptGlobalConfig config);

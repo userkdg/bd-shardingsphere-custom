@@ -3,8 +3,14 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 /**
  * @author Jarod.Kong
  */
-public interface ShardingSphereShuffle {
-    default void init(Object config) {
+@FunctionalInterface
+public interface BaseShuffle {
+
+    default void init() {
+
+    }
+
+    default void finish() {
 
     }
 

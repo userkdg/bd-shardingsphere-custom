@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.EncryptShuffleCliV2;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkShuffleCli;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
@@ -50,7 +50,7 @@ public class EncryptShuffleCliV2Test {
     @SneakyThrows
     @Test
     public void test() {
-        EncryptShuffleCliV2.main(args);
+        SparkShuffleCli.main(args);
         TimeUnit.MINUTES.sleep(10);
     }
 }
