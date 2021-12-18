@@ -1,18 +1,19 @@
 package cn.com.bluemoon.encrypt.shuffle.cli;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 
 /**
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkSubmitMainParamUserExample {
+public class SparkSubmitMainEncryptSysUserExample {
     private static String exampleArg = "";
     private static String jobName = "";
 
@@ -31,10 +32,10 @@ public class SparkSubmitMainParamUserExample {
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setExtractCols(
-                Arrays.asList(
-                        new GlobalConfig.FieldInfo("phone", new GlobalConfig.EncryptRule("AES", props))
-                )
+        config.setShuffleCols(
+                new LinkedHashMap<String, GlobalConfig.FieldInfo>() {{
+                    put("phone", new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", props)));
+                }}
         );
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
@@ -48,6 +49,6 @@ public class SparkSubmitMainParamUserExample {
     }
 
     public static void main(String[] args) {
-        SparkSubmitMain.main(new String[]{exampleArg, jobName});
+        SparkSubmitEncryptShuffleMain.main(new String[]{exampleArg, jobName});
     }
 }
