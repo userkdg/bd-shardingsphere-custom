@@ -54,11 +54,12 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     public void shuffle() {
         try (SparkSession spark = getSparkSession(config.isOnYarn())) {
             if (ExtractMode.WithIncrTimestamp.equals(config.getExtractMode())) {
-                tryReShuffleWithExtractMode(spark);
+                tryReShuffleWithIncFieldExtractMode(spark);
             } else {
+                log.info("开始{}模式读取源表", config.getExtractMode());
                 Dataset<Row> dataset = spark.read().format("jdbc").options(getSourceJdbcProps()).load();
                 dataset.printSchema();
-                log.info("开始更新源表");
+                log.info("开始{}模式更新源表", config.getExtractMode());
                 doShuffle(dataset, dataset.schema(), globalConfigBroadcast.getValue());
             }
             log.info("{}模式，洗数结束！！", config.getExtractMode());
@@ -68,10 +69,11 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     /**
      * 尝试抽取下一次增量
      */
-    private void tryReShuffleWithExtractMode(SparkSession spark) {
+    private void tryReShuffleWithIncFieldExtractMode(SparkSession spark) {
         long incrExtractSize = 0;
         do {
             // 先查询出top1的增量字段值，再进行增量条件查询
+            log.info("开始读取增量最大值");
             Dataset<Row> maxIncrTimestampDf = spark.read().format("jdbc").options(getSourceJdbcMaxIncrTimestampProps()).load();
             Row topOne = maxIncrTimestampDf.select(config.getIncrTimestampCol()).first();
             curMaxIncrTimestamp = Optional.ofNullable(topOne.getAs(config.getIncrTimestampCol())).map(String::valueOf).orElse(DateUtil.now());

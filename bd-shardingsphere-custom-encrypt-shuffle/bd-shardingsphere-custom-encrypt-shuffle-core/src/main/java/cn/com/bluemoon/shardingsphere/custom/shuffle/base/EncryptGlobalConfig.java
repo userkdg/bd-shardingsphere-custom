@@ -6,13 +6,13 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.StringJoiner;
 
 /**
  * @author Jarod.Kong
  */
 @Getter
 @Setter
-@ToString
 public class EncryptGlobalConfig implements Serializable {
 
     public static final String MYSQL = "mysql";
@@ -115,10 +115,29 @@ public class EncryptGlobalConfig implements Serializable {
         throw new RuntimeException("不支持数据库类型");
     }
 
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", EncryptGlobalConfig.class.getSimpleName() + "[", "]")
+                .add("sourceUrl='" + getConvertSourceUrl() + "'")
+                .add("targetUrl='" + getConvertTargetUrl() + "'")
+                .add("ruleTableName='" + ruleTableName + "'")
+                .add("primaryCols=" + primaryCols)
+                .add("partitionCol=" + partitionCol)
+                .add("incrTimestampCol='" + incrTimestampCol + "'")
+                .add("customExtractWhereSql='" + customExtractWhereSql + "'")
+                .add("onYarn=" + onYarn)
+                .add("jobName='" + jobName + "'")
+                .add("plainCols=" + plainCols)
+                .add("extractMode=" + extractMode)
+                .add("multiBatchUrlConfig=" + multiBatchUrlConfig)
+                .toString();
+    }
+
     @Setter
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    @ToString
     public static class FieldInfo implements Serializable {
         private String name;
         // 入参不为空，则已入参为准，若为空则以spark读取的schema类型为准
@@ -145,6 +164,7 @@ public class EncryptGlobalConfig implements Serializable {
 
     @Getter
     @RequiredArgsConstructor
+    @ToString
     public static class EncryptRule implements Serializable {
         /**
          * 类型：AES/ MD5

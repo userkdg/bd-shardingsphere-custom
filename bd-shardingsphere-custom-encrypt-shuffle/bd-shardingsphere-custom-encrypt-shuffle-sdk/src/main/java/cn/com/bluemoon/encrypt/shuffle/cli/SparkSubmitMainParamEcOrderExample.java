@@ -33,7 +33,9 @@ public class SparkSubmitMainParamEcOrderExample {
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
         config.setPlainCols(
                 Arrays.asList(
-                        new EncryptGlobalConfig.FieldInfo("address", new EncryptGlobalConfig.EncryptRule("AES", props))
+//                        new EncryptGlobalConfig.FieldInfo("address", new EncryptGlobalConfig.EncryptRule("AES", props)),
+                        new EncryptGlobalConfig.FieldInfo("receiver_mobile", new EncryptGlobalConfig.EncryptRule("AES", props)),
+                        new EncryptGlobalConfig.FieldInfo("receiver_name", new EncryptGlobalConfig.EncryptRule("AES", props))
                 )
         );
         config.setExtractMode(ExtractMode.WithIncrTimestamp);
