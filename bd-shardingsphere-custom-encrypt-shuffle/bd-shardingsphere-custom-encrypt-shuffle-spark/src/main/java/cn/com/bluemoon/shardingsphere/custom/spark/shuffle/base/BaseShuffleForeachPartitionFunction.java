@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.broadcast.Broadcast;
@@ -19,9 +19,9 @@ import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.SparkJDBC
  */
 @Slf4j
 public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachPartitionFunction<T> {
-    protected final EncryptGlobalConfig globalConfig;
+    protected final GlobalConfig globalConfig;
 
-    public BaseShuffleForeachPartitionFunction(StructType schema, Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
+    public BaseShuffleForeachPartitionFunction(StructType schema, Broadcast<GlobalConfig> globalConfigBroadcast) {
         this.globalConfig = globalColsTypeHandlerBySparkSchema(globalConfigBroadcast, schema);
     }
 
@@ -36,11 +36,11 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
 
     protected abstract void doUpdate(Iterator<T> rows) throws SQLException;
 
-    protected EncryptGlobalConfig globalColsTypeHandlerBySparkSchema(Broadcast<EncryptGlobalConfig> globalConfigBroadcast, StructType schema) {
-        EncryptGlobalConfig broadcastValue = globalConfigBroadcast.getValue();
+    protected GlobalConfig globalColsTypeHandlerBySparkSchema(Broadcast<GlobalConfig> globalConfigBroadcast, StructType schema) {
+        GlobalConfig broadcastValue = globalConfigBroadcast.getValue();
         // 主键列
-        List<EncryptGlobalConfig.FieldInfo> partCols = broadcastValue.getPrimaryCols();
-        for (EncryptGlobalConfig.FieldInfo partCol : partCols) {
+        List<GlobalConfig.FieldInfo> partCols = broadcastValue.getPrimaryCols();
+        for (GlobalConfig.FieldInfo partCol : partCols) {
             if (partCol.getType() == null) {
                 StructField structField = schema.apply(partCol.getName());
                 JDBCType partColType = getFieldJDBCType(structField.dataType());
@@ -49,15 +49,15 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
         }
         broadcastValue.setPrimaryCols(partCols);
         // 明文列
-        List<EncryptGlobalConfig.FieldInfo> plainCols = broadcastValue.getPlainCols();
-        for (EncryptGlobalConfig.FieldInfo plainCol : plainCols) {
+        List<GlobalConfig.FieldInfo> extractCols = broadcastValue.getExtractCols();
+        for (GlobalConfig.FieldInfo plainCol : extractCols) {
             if (plainCol.getType() == null) {
                 StructField plainField = schema.apply(plainCol.getName());
                 JDBCType plainColType = getFieldJDBCType(plainField.dataType());
                 plainCol.setType(plainColType.getVendorTypeNumber());
             }
         }
-        broadcastValue.setPlainCols(plainCols);
+        broadcastValue.setExtractCols(extractCols);
         log.info("encrypt Global Bean:{}", broadcastValue);
         return broadcastValue;
     }

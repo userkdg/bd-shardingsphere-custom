@@ -1,7 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import lombok.SneakyThrows;
@@ -22,32 +22,32 @@ public class EncryptShuffleCliV2TestEcOrderSysUser {
 
     @Before
     public void setUp() throws Exception {
-        EncryptGlobalConfig config = new EncryptGlobalConfig();
+        GlobalConfig config = new GlobalConfig();
         final String dbName = "ec_order";
         final String tableName = "sys_user";
         config.setSourceUrl(String.format("jdbc:mysql://192.168.234.8:4401/%s?user=sharding&password=HGbZYrqlpr25", dbName));
         config.setTargetUrl(String.format("jdbc:mysql://192.168.234.8:4401/%s?user=sharding&password=HGbZYrqlpr25", dbName));
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
-                new EncryptGlobalConfig.FieldInfo("id")
+                new GlobalConfig.FieldInfo("id")
         ));
-        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("id"));
+        config.setPartitionCol(new GlobalConfig.FieldInfo("id"));
         config.setOnYarn(false);
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setPlainCols(
+        config.setExtractCols(
                 Arrays.asList(
-                        new EncryptGlobalConfig.FieldInfo("phone", new EncryptGlobalConfig.EncryptRule("AES", props))
+                        new GlobalConfig.FieldInfo("phone", new GlobalConfig.EncryptRule("AES", props))
                 )
         );
-        config.setExtractMode(ExtractMode.WithIncrTimestamp);
+        config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
         config.setMultiBatchUrlConfig(true);
-        String json = EncryptGlobalConfigSwapper.gson.toJson(config);
+        String json = GlobalConfigSwapper.gson.toJson(config);
         log.debug("mock json example:{}", json);
-        EncryptGlobalConfig encryptGlobalConfig = EncryptGlobalConfigSwapper.swapToConfig(json);
-        log.debug("json to bean:{}", encryptGlobalConfig);
+        GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);
+        log.debug("json to bean:{}", globalConfig);
         this.args = new String[]{"-c " + json, tableName};
     }
 

@@ -1,7 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import lombok.SneakyThrows;
@@ -22,30 +22,30 @@ public class EncryptShuffleCliV2TestEcOrder {
 
     @Before
     public void setUp() throws Exception {
-        EncryptGlobalConfig config = new EncryptGlobalConfig();
+        GlobalConfig config = new GlobalConfig();
         config.setSourceUrl("jdbc:mysql://192.168.234.7:3306/ec_order?user=shproxy_morder&password=9kD6sN4qMIwN");
         config.setTargetUrl("jdbc:mysql://192.168.234.7:3306/ec_order?user=shproxy_morder&password=9kD6sN4qMIwN");
         String tableName = "ec_oms_order";
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
-                new EncryptGlobalConfig.FieldInfo("order_code")
+                new GlobalConfig.FieldInfo("order_code")
         ));
-        config.setPartitionCol(new EncryptGlobalConfig.FieldInfo("order_code"));
+        config.setPartitionCol(new GlobalConfig.FieldInfo("order_code"));
         config.setOnYarn(false);
         config.setJobName("bd-spark-encrypt-shuffle-" + tableName);
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setPlainCols(
+        config.setExtractCols(
                 Arrays.asList(
-                        new EncryptGlobalConfig.FieldInfo("address", new EncryptGlobalConfig.EncryptRule("AES", props))
+                        new GlobalConfig.FieldInfo("address", new GlobalConfig.EncryptRule("AES", props))
                 )
         );
         config.setExtractMode(ExtractMode.All);
         config.setMultiBatchUrlConfig(true);
-        String json = EncryptGlobalConfigSwapper.gson.toJson(config);
+        String json = GlobalConfigSwapper.gson.toJson(config);
         log.debug("mock json example:{}", json);
-        EncryptGlobalConfig encryptGlobalConfig = EncryptGlobalConfigSwapper.swapToConfig(json);
-        log.debug("json to bean:{}", encryptGlobalConfig);
+        GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);
+        log.debug("json to bean:{}", globalConfig);
         this.args = new String[]{"-c " + json};
     }
 

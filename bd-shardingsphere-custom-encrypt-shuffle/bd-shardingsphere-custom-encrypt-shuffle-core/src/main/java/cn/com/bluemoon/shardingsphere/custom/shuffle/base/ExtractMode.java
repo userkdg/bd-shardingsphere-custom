@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public enum ExtractMode {
     All(1, "全量抽取"),
     OtherCustom(4, "其他抽取方式，基于customExtractWhereSql字段来定义"),
-    WithIncrTimestamp(5, "带增加时间字段抽取");
+    WithIncField(5, "带增量字段抽取，如：last_update_time");
 
     private final int type;
     private final String desc;

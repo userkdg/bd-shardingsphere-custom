@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleFlatMapFunction;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.spark.broadcast.Broadcast;
@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
 
-    public EncryptFlatMapFunction(Broadcast<EncryptGlobalConfig> broadcast) {
+    public EncryptFlatMapFunction(Broadcast<GlobalConfig> broadcast) {
         super(broadcast);
     }
 
@@ -23,16 +23,16 @@ public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
         while (iterator.hasNext()) {
             Row row = iterator.next();
             Map<String, Object> r = new HashMap<>();
-            for (EncryptGlobalConfig.FieldInfo plainCol : plainCols) {
+            for (GlobalConfig.FieldInfo plainCol : extractCols) {
                 Object val = row.getAs(plainCol.getName());
-                EncryptGlobalConfig.EncryptRule encryptRule = plainCol.getEncryptRule();
+                GlobalConfig.EncryptRule encryptRule = plainCol.getEncryptRule();
                 String type = encryptRule.getType();
                 EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
                 String cipherText = encryptAlgorithm.encrypt(val);
                 r.put(plainCol.getName(), val);
                 r.put(encryptFieldName(plainCol.getName()), cipherText);
             }
-            for (EncryptGlobalConfig.FieldInfo primaryCol : primaryCols) {
+            for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
                 r.put(primaryCol.getName(), row.getAs(primaryCol.getName()));
             }
             rows.add(r);

@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
@@ -25,7 +25,7 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
     private volatile String curMaxIncrTimestamp;
     private volatile Dataset<Row> nextDfWithCache;
 
-    public SparkDbExtractIWithIncTimestamp(EncryptGlobalConfig config, SparkSession spark) {
+    public SparkDbExtractIWithIncTimestamp(GlobalConfig config, SparkSession spark) {
         super(config, spark);
     }
 
@@ -35,7 +35,7 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
     protected Map<String, String> getSourceJdbcMaxIncrTimestampProps() {
         Map<String, String> props = getSourceJdbcBasicProps();
         ExtractMode shuffleMode = config.getExtractMode();
-        Assert.isTrue(ExtractMode.WithIncrTimestamp.equals(shuffleMode) && StringUtils.isNotBlank(config.getIncrTimestampCol()), "暂支持{}模式获取增量字段最大值", ExtractMode.WithIncrTimestamp);
+        Assert.isTrue(ExtractMode.WithIncField.equals(shuffleMode) && StringUtils.isNotBlank(config.getIncrTimestampCol()), "暂支持{}模式获取增量字段最大值", ExtractMode.WithIncField);
         final String tableAlias = String.format("%s AS %s", config.getRuleTableName(), SPARK_JDBC_DBTABLE_ALIAS);
         String maxQuerySql = String.format("(select MAX(%s) as %s from %s ) as max_table_tmp", wrappedFieldAlias(config.getIncrTimestampCol()), config.getIncrTimestampCol(), tableAlias);
         props.put(JDBCOptions.JDBC_TABLE_NAME(), maxQuerySql);
@@ -43,8 +43,8 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
     }
 
     @Override
-    protected String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> plainCols) {
-        return whereSqlWithIncrTimestamp();
+    protected String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> extractCols) {
+        return whereSqlWithIncField();
     }
 
     @Override
@@ -60,9 +60,9 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
     /**
      * 分析上一次和当前次 sql where片段
      */
-    private String whereSqlWithIncrTimestamp() {
+    private String whereSqlWithIncField() {
         String incrTimestampCol = config.getIncrTimestampCol();
-        Objects.requireNonNull(incrTimestampCol, String.format("%s模式必须填写时间类型增量[%s]字段", ExtractMode.WithIncrTimestamp, "EncryptGlobalConfig.incrTimestampCol"));
+        Objects.requireNonNull(incrTimestampCol, String.format("%s模式必须填写时间类型增量[%s]字段", ExtractMode.WithIncField, "EncryptGlobalConfig.incrTimestampCol"));
         if (preExtractTimestamp == null) {
             String currentTimestamp = curMaxIncrTimestamp;
 //            String lte = String.format(" %s <= '%s' ", wrappedFieldAlias(incrTimestampCol), currentTimestamp);

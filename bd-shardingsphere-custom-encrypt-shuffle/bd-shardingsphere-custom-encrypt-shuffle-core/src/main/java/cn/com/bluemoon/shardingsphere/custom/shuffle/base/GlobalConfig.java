@@ -13,7 +13,7 @@ import java.util.StringJoiner;
  */
 @Getter
 @Setter
-public class EncryptGlobalConfig implements Serializable {
+public class GlobalConfig implements Serializable {
 
     public static final String MYSQL = "mysql";
     public static final String POSTGRESQL = "postgresql";
@@ -55,11 +55,15 @@ public class EncryptGlobalConfig implements Serializable {
     /**
      * 洗数作业名称
      */
-    private String jobName = "bd-spark-KMS-洗数程序";
+    private String jobName = "bd-spark-kms-shuffle-job";
     /**
      * 字段名称+类型，有序
+     * 1.明->密：表示plain Columns 明文列 eg: address
+     * 2.密->明：表示cipher Columns 密文列 eg: address_cipher
+     * 即可：不同洗数目的对应不同字段列，而获取方式统一
+     * 对明文、密文进行洗数，都统一命名为抽取列
      */
-    private List<FieldInfo> plainCols;
+    private List<FieldInfo> extractCols;
     /**
      * 定义洗数模式
      */
@@ -117,7 +121,7 @@ public class EncryptGlobalConfig implements Serializable {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", EncryptGlobalConfig.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", GlobalConfig.class.getSimpleName() + "[", "]")
                 .add("sourceUrl='" + getConvertSourceUrl() + "'")
                 .add("targetUrl='" + getConvertTargetUrl() + "'")
                 .add("ruleTableName='" + ruleTableName + "'")
@@ -127,7 +131,7 @@ public class EncryptGlobalConfig implements Serializable {
                 .add("customExtractWhereSql='" + customExtractWhereSql + "'")
                 .add("onYarn=" + onYarn)
                 .add("jobName='" + jobName + "'")
-                .add("plainCols=" + plainCols)
+                .add("extractCols=" + extractCols)
                 .add("extractMode=" + extractMode)
                 .add("multiBatchUrlConfig=" + multiBatchUrlConfig)
                 .toString();

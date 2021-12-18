@@ -1,7 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJob;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJobGraceful;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
 import cn.hutool.core.lang.Assert;
@@ -19,22 +18,22 @@ import org.apache.spark.sql.types.StructType;
 @Getter
 public class EncryptShuffleJobV2 extends BaseShuffleJobGraceful implements EncryptShuffle {
 
-    public EncryptShuffleJobV2(EncryptGlobalConfig config) {
+    public EncryptShuffleJobV2(GlobalConfig config) {
         super(config);
     }
 
     @Override
     public void init() {
         super.init();
-        boolean hadEncryptRule = config.getPlainCols().stream().allMatch(f -> f.getEncryptRule() != null && f.getEncryptRule().getType() != null);
+        boolean hadEncryptRule = config.getExtractCols().stream().allMatch(f -> f.getEncryptRule() != null && f.getEncryptRule().getType() != null);
         Assert.isTrue(hadEncryptRule, "必须指定明文列的加密算法信息");
     }
 
     @Override
-    public void doShuffle(Dataset<Row> dataset, StructType schema, EncryptGlobalConfig globalConfig) {
+    public void doShuffle(Dataset<Row> dataset, StructType schema, GlobalConfig globalConfig) {
         JavaRDD<Row> rowJavaRDD = dataset.toJavaRDD();
         rowJavaRDD
-                .repartition(Integer.parseInt(BaseShuffleJob.parallelNum))
+                .repartition(Integer.parseInt(parallelNum))
                 .mapPartitions(new EncryptFlatMapFunction(globalConfigBroadcast))
                 .foreachPartition(new EncryptShuffleForeachPartitionFunction(schema, globalConfigBroadcast));
     }

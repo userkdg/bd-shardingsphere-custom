@@ -1,10 +1,9 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.ShardingProxyEncryptShuffleCli;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import com.google.gson.Gson;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.Dataset;
@@ -41,25 +40,25 @@ public class EncryptShuffleCliAllTest {
             Object tableName = r.getAs("tableName");
             return tableName + "";
         }));
-        List<EncryptGlobalConfig> configs = tableNameRows.entrySet().stream().map(entry -> {
-            EncryptGlobalConfig config = new EncryptGlobalConfig();
+        List<GlobalConfig> configs = tableNameRows.entrySet().stream().map(entry -> {
+            GlobalConfig config = new GlobalConfig();
             config.setSourceUrl("jdbc:mysql://192.168.234.8:4401/ec_order?user=sharding&password=HGbZYrqlpr25");
             config.setTargetUrl("jdbc:mysql://192.168.243.34:23308/ec_order_db?user=root&password=root");
             config.setRuleTableName(entry.getKey());
             List<String> orDefault = (List<String>) tableKeys.getOrDefault(entry.getKey(), Collections.emptyList());
-            config.setPrimaryCols(orDefault.stream().map(t -> new EncryptGlobalConfig.FieldInfo(t)).collect(Collectors.toList()));
+            config.setPrimaryCols(orDefault.stream().map(t -> new GlobalConfig.FieldInfo(t)).collect(Collectors.toList()));
             config.setOnYarn(false);
             config.setJobName("电商洗数-ec_order-" + entry.getKey());
             List<Row> tableRows = entry.getValue();
-            List<EncryptGlobalConfig.FieldInfo> columnNames = tableRows.stream().map(r -> r.getAs("columnName"))
-                    .map(r -> new EncryptGlobalConfig.FieldInfo(String.valueOf(r))).collect(Collectors.toList());
-            config.setPlainCols(
+            List<GlobalConfig.FieldInfo> columnNames = tableRows.stream().map(r -> r.getAs("columnName"))
+                    .map(r -> new GlobalConfig.FieldInfo(String.valueOf(r))).collect(Collectors.toList());
+            config.setExtractCols(
                     columnNames
             );
             config.setExtractMode(ExtractMode.All);
             return config;
         }).collect(Collectors.toList());
-        configs.stream().map(EncryptGlobalConfigSwapper.gson::toJson)
+        configs.stream().map(GlobalConfigSwapper.gson::toJson)
                 .map(s -> new String[]{"-c=" + s})
                 .forEach(s -> {
                     ShardingProxyEncryptShuffleCli.main(s);

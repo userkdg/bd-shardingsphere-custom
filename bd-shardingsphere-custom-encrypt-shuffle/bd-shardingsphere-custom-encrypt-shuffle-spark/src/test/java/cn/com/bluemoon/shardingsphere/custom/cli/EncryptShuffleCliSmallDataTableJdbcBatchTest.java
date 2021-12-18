@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import org.junit.Test;
 
 import java.sql.*;
@@ -13,7 +13,7 @@ import java.util.List;
 public class EncryptShuffleCliSmallDataTableJdbcBatchTest {
 
 
-    private static final EncryptGlobalConfig config = new EncryptGlobalConfig();
+    private static final GlobalConfig config = new GlobalConfig();
 
     @Test
     public void testBatchUpdate() {

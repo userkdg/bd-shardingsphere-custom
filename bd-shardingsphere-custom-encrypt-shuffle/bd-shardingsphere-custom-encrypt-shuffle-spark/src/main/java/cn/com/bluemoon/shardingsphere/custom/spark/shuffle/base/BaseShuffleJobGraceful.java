@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSparkDbExtract;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.ExtractFactory;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.SparkDbExtract;
 import lombok.Getter;
@@ -21,18 +22,21 @@ import java.util.Iterator;
 @Slf4j
 @Getter
 public abstract class BaseShuffleJobGraceful implements BaseShuffle {
+
+    public static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", BaseSparkDbExtract.parallelNum);
+
     // must static
-    protected static Broadcast<EncryptGlobalConfig> globalConfigBroadcast;
+    protected static Broadcast<GlobalConfig> globalConfigBroadcast;
 
-    protected final EncryptGlobalConfig config;
+    protected final GlobalConfig config;
 
-    public BaseShuffleJobGraceful(EncryptGlobalConfig config) {
+    public BaseShuffleJobGraceful(GlobalConfig config) {
         this.config = config;
     }
 
     public void init() {
         log.info("start job !!");
-        if (config.getPlainCols() == null || config.getPlainCols().isEmpty()) {
+        if (config.getExtractCols() == null || config.getExtractCols().isEmpty()) {
             throw new RuntimeException("洗数字段不可为空");
         }
     }
@@ -68,7 +72,7 @@ public abstract class BaseShuffleJobGraceful implements BaseShuffle {
     /**
      * 负责转换（洗数）、入库
      */
-    public abstract void doShuffle(Dataset<Row> dataset, StructType schema, EncryptGlobalConfig globalConfig);
+    public abstract void doShuffle(Dataset<Row> dataset, StructType schema, GlobalConfig globalConfig);
 
     @Override
     public void finish() {

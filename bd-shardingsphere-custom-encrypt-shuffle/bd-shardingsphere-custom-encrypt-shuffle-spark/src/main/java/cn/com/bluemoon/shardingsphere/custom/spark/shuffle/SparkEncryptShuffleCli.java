@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli.AdvCli;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleCli;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
@@ -21,7 +21,7 @@ public class SparkEncryptShuffleCli extends BaseShuffleCli {
     }
 
     @Override
-    protected EncryptShuffle getCustomShuffleJob(EncryptGlobalConfig config) {
+    protected EncryptShuffle getCustomShuffleJob(GlobalConfig config) {
         return new EncryptShuffleJobV2(config);
     }
 
