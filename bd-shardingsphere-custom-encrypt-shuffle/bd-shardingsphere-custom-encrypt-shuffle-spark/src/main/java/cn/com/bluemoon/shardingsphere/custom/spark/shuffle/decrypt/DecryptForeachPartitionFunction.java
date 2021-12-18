@@ -2,17 +2,19 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleForeachPartitionFunction;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJobGraceful;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.types.StructType;
 
 import java.sql.*;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleFlatMapFunction.wrapPlainBakFieldName;
+import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt.DecryptShuffleJob.wrapPlainBakFieldName;
 import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSparkDbExtract.BATCH_SIZE;
 
 /**
@@ -30,7 +32,7 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
         List<GlobalConfig.FieldInfo> primaryCols = globalConfig.getPrimaryCols();
         try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
             List<String> plainBakCols = getPlainBakCols(globalConfig.getExtractCols());
-            final String updateDynamicSql = getUpdateDynamicSql(primaryCols, plainBakCols);
+            final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, plainBakCols);
             // update batch
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
                 int batchSize = Integer.parseInt(BATCH_SIZE);
@@ -40,8 +42,8 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
                     // 类型问题
                     int cipherSize = plainBakCols.size();
                     for (int i = 1; i <= cipherSize; i++) {
-                        String cipherName = plainBakCols.get(i - 1);
-                        ps.setString(i, Objects.toString(row.get(cipherName), null));
+                        String plainBakCol = plainBakCols.get(i - 1);
+                        ps.setString(i, Objects.toString(row.get(plainBakCol), null));
                     }
                     for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
                         ps.setObject(++cipherSize, row.get(primaryCol.getName()), JDBCType.valueOf(primaryCol.getType()));
@@ -63,22 +65,8 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
         }
     }
 
-    private String getUpdateDynamicSql(List<GlobalConfig.FieldInfo> primaryCols, List<String> cipherCols) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("update ").append(globalConfig.getRuleTableName()).append(" set ");
-        String setFields = cipherCols.stream().map(f -> f + "=?")
-                .collect(Collectors.joining(", "));
-        sb.append(setFields).append(" where ");
-        List<String> whereSql = new ArrayList<>(primaryCols.size());
-        for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
-            whereSql.add(primaryCol.getName() + "=?");
-        }
-        sb.append(String.join(" and ", whereSql));
-        return sb.toString();
-    }
-
-    private List<String> getPlainBakCols(List<GlobalConfig.FieldInfo> plainColumnNames) {
-        return plainColumnNames.stream().map(p -> wrapPlainBakFieldName(p.getName())).collect(Collectors.toList());
+    private List<String> getPlainBakCols(List<GlobalConfig.FieldInfo> cipherColNames) {
+        return cipherColNames.stream().map(p -> globalConfig.getTargetColOrElse(p.getName(), wrapPlainBakFieldName(p.getName()))).collect(Collectors.toList());
     }
 
 }

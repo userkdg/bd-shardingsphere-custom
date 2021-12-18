@@ -21,10 +21,6 @@ import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig.PO
 @Slf4j
 public abstract class BaseSparkDbExtract implements SparkDbExtract {
 
-    public static final String JDBC_PROXY_CIPHER_FILED_SUFFIX = "_cipher";
-
-    public static final String JDBC_PROXY_PLAIN_FILED_BAK_SUFFIX = "_plain";
-
     public static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
 
     public static final String SPARK_JDBC_DBTABLE_ALIAS = "a";

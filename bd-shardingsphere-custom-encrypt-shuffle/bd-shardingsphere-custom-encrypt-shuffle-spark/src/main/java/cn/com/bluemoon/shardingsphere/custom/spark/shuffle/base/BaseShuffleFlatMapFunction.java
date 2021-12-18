@@ -14,34 +14,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSparkDbExtract.JDBC_PROXY_CIPHER_FILED_SUFFIX;
-import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSparkDbExtract.JDBC_PROXY_PLAIN_FILED_BAK_SUFFIX;
-
 /**
  * @author Jarod.Kong
  */
 public abstract class BaseShuffleFlatMapFunction implements FlatMapFunction<Iterator<Row>, Map<String, Object>> {
-    public static final String CIPHER_SUFFIX = JDBC_PROXY_CIPHER_FILED_SUFFIX;
-    public static final String PLAIN_BAK_SUFFIX = JDBC_PROXY_PLAIN_FILED_BAK_SUFFIX;
 
     static {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
     }
 
+    protected final GlobalConfig globalConfig;
+
     protected final List<GlobalConfig.FieldInfo> extractCols;
+
     protected final List<GlobalConfig.FieldInfo> primaryCols;
 
     public BaseShuffleFlatMapFunction(Broadcast<GlobalConfig> broadcast) {
-        this.extractCols = broadcast.getValue().getExtractCols();
-        this.primaryCols = broadcast.getValue().getPrimaryCols();
-    }
-
-    public static String encryptFieldName(String plainName) {
-        return plainName + CIPHER_SUFFIX;
-    }
-
-    public static String wrapPlainBakFieldName(String colName) {
-        return colName + PLAIN_BAK_SUFFIX;
+        GlobalConfig config = broadcast.getValue();
+        this.globalConfig = config;
+        this.extractCols = config.getExtractCols();
+        this.primaryCols = config.getPrimaryCols();
     }
 
     protected EncryptAlgorithm createEncryptAlgorithm(String type, Properties props) {

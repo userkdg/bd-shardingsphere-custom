@@ -4,7 +4,7 @@ import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.cli.AdvCli;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleCli;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptShuffleJobV2;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptShuffleJob;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,7 +22,8 @@ public class SparkEncryptShuffleCli extends BaseShuffleCli {
 
     @Override
     protected EncryptShuffle getCustomShuffleJob(GlobalConfig config) {
-        return new EncryptShuffleJobV2(config);
+        config.setShuffleMode(GlobalConfig.ShuffleMode.ENCRYPT);
+        return new EncryptShuffleJob(config);
     }
 
 

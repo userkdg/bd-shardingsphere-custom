@@ -22,6 +22,7 @@ public class SparkDecryptShuffleCli extends BaseShuffleCli {
 
     @Override
     protected DecryptShuffle getCustomShuffleJob(GlobalConfig config) {
+        config.setShuffleMode(GlobalConfig.ShuffleMode.DECRYPT);
         return new DecryptShuffleJob(config);
     }
 

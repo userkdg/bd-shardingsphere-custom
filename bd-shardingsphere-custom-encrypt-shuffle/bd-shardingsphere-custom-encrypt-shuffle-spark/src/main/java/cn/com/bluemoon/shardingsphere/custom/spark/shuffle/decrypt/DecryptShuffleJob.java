@@ -17,9 +17,14 @@ import org.apache.spark.sql.types.StructType;
 @Slf4j
 @Getter
 public class DecryptShuffleJob extends BaseShuffleJobGraceful implements DecryptShuffle {
+    public static final String PLAIN_BAK_SUFFIX = System.getProperty("plain.bak.suffix", "_plain");
 
     public DecryptShuffleJob(GlobalConfig config) {
         super(config);
+    }
+
+    public static String wrapPlainBakFieldName(String colName) {
+        return colName + PLAIN_BAK_SUFFIX;
     }
 
     @Override

@@ -51,6 +51,6 @@ public class EncryptShuffleCliV2Test {
     @Test
     public void test() {
         SparkEncryptShuffleCli.main(args);
-        TimeUnit.MINUTES.sleep(10);
+
     }
 }

@@ -1,8 +1,9 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkDecryptShuffleCli;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -12,13 +13,12 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Jarod.Kong
  */
 @Slf4j
-public class EncryptShuffleCliV2TestEcOrderSysUser {
+public class DecryptShuffleCliV2TestEcOrderSysUser {
     private String[] args;
 
     @Before
@@ -34,11 +34,11 @@ public class EncryptShuffleCliV2TestEcOrderSysUser {
         ));
         config.setPartitionCol(new GlobalConfig.FieldInfo("id"));
         config.setOnYarn(false);
-        config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
+        config.setJobName(String.format("bd-spark-decrypt-shuffle-%s-%s", dbName, tableName));
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
         config.setShuffleCols(new LinkedHashMap<String, GlobalConfig.FieldInfo>(){{
-            put("phone", new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", props)));
+            put("phone_cipher", new GlobalConfig.FieldInfo("phone_plain", new GlobalConfig.EncryptRule("AES", props)));
         }});
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
@@ -54,7 +54,7 @@ public class EncryptShuffleCliV2TestEcOrderSysUser {
     @SneakyThrows
     @Test
     public void test() {
-        SparkEncryptShuffleCli.main(args);
+        SparkDecryptShuffleCli.main(args);
 
     }
 }

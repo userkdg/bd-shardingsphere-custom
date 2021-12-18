@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -35,11 +36,9 @@ public class EncryptShuffleCliV2TestEcOrder {
         config.setJobName("bd-spark-encrypt-shuffle-" + tableName);
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setExtractCols(
-                Arrays.asList(
-                        new GlobalConfig.FieldInfo("address", new GlobalConfig.EncryptRule("AES", props))
-                )
-        );
+        config.setShuffleCols(new LinkedHashMap<String, GlobalConfig.FieldInfo>(){{
+            put("address", new GlobalConfig.FieldInfo("address_cipher", new GlobalConfig.EncryptRule("AES", props)));
+        }});
         config.setExtractMode(ExtractMode.All);
         config.setMultiBatchUrlConfig(true);
         String json = GlobalConfigSwapper.gson.toJson(config);
@@ -54,6 +53,6 @@ public class EncryptShuffleCliV2TestEcOrder {
     @Test
     public void test() {
         SparkEncryptShuffleCli.main(args);
-        TimeUnit.MINUTES.sleep(10);
+
     }
 }

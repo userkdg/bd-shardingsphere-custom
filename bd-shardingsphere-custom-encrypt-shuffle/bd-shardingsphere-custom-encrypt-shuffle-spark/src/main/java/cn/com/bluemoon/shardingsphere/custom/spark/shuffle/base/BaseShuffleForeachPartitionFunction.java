@@ -9,8 +9,10 @@ import org.apache.spark.sql.types.StructType;
 
 import java.sql.JDBCType;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.SparkJDBCMetadataUtils.getFieldJDBCType;
 
@@ -51,6 +53,7 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
         // 明文列
         List<GlobalConfig.FieldInfo> extractCols = broadcastValue.getExtractCols();
         for (GlobalConfig.FieldInfo plainCol : extractCols) {
+            // 针对调用者没有指定目标类型的情况下
             if (plainCol.getType() == null) {
                 StructField plainField = schema.apply(plainCol.getName());
                 JDBCType plainColType = getFieldJDBCType(plainField.dataType());
@@ -62,5 +65,19 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
         return broadcastValue;
     }
 
+
+    protected String updateDynamicSqlBuilder(List<GlobalConfig.FieldInfo> primaryCols, List<String> cipherCols) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("update ").append(globalConfig.getRuleTableName()).append(" set ");
+        String setFields = cipherCols.stream().map(f -> f + "=?")
+                .collect(Collectors.joining(", "));
+        sb.append(setFields).append(" where ");
+        List<String> whereSql = new ArrayList<>(primaryCols.size());
+        for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
+            whereSql.add(primaryCol.getName() + "=?");
+        }
+        sb.append(String.join(" and ", whereSql));
+        return sb.toString();
+    }
 
 }
