@@ -1,18 +1,19 @@
 package cn.com.bluemoon.encrypt.shuffle.cli;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 
 /**
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkSubmitMainParamEcOrderExample {
+public class SparkSubmitEncryptEcOmsOrderExample {
     private static String exampleArg = "";
     private static String jobName = "";
 
@@ -31,13 +32,11 @@ public class SparkSubmitMainParamEcOrderExample {
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
         Properties props = new Properties();
         props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setExtractCols(
-                Arrays.asList(
-//                        new EncryptGlobalConfig.FieldInfo("address", new EncryptGlobalConfig.EncryptRule("AES", props)),
-                        new GlobalConfig.FieldInfo("receiver_mobile", new GlobalConfig.EncryptRule("AES", props)),
-                        new GlobalConfig.FieldInfo("receiver_name", new GlobalConfig.EncryptRule("AES", props))
-                )
-        );
+        config.setShuffleCols(new LinkedHashMap<String, GlobalConfig.FieldInfo>() {{
+            put("address", new GlobalConfig.FieldInfo("address_cipher", new GlobalConfig.EncryptRule("AES", props)));
+            put("receiver_mobile", new GlobalConfig.FieldInfo("receiver_mobile_cipher", new GlobalConfig.EncryptRule("AES", props)));
+            put("receiver_name", new GlobalConfig.FieldInfo("receiver_name_cipher", new GlobalConfig.EncryptRule("AES", props)));
+        }});
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("last_update_time");
         config.setMultiBatchUrlConfig(true);
@@ -50,6 +49,6 @@ public class SparkSubmitMainParamEcOrderExample {
     }
 
     public static void main(String[] args) {
-        SparkSubmitMain.main(new String[]{exampleArg, jobName});
+        SparkSubmitEncryptShuffleMain.main(new String[]{exampleArg, jobName});
     }
 }

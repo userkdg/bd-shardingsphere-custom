@@ -60,7 +60,7 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
                 plainCol.setType(plainColType.getVendorTypeNumber());
             }
         }
-        broadcastValue.setExtractCols(extractCols);
+        broadcastValue.setExtractColsInternal(extractCols);
         log.info("encrypt Global Bean:{}", broadcastValue);
         return broadcastValue;
     }

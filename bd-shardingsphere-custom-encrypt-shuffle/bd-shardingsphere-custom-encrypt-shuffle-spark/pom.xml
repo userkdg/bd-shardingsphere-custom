@@ -109,11 +109,11 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli</mainClass>
-                        </manifest>
-                    </archive>
+<!--                    <archive>-->
+<!--                        <manifest>-->
+<!--                            <mainClass>cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli</mainClass>-->
+<!--                        </manifest>-->
+<!--                    </archive>-->
                 </configuration>
                 <executions>
                     <execution>

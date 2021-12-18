@@ -81,7 +81,7 @@ public class GlobalConfig implements Serializable {
      *          props: aes-key-value: xxx
      * </pre>
      */
-    private LinkedHashMap<String, FieldInfo> shuffleCols;
+    private LinkedHashMap<String, FieldInfo> shuffleCols = new LinkedHashMap<>();
     /**
      * 定义洗数模式
      */
@@ -94,7 +94,16 @@ public class GlobalConfig implements Serializable {
     /**
      * 洗数模式
      */
+    @Setter(value = AccessLevel.NONE)
     private ShuffleMode shuffleMode = ShuffleMode.ENCRYPT;
+
+    /**
+     * 内部设置
+     * 不推荐外部设置
+     */
+    public void setShuffleModeInternal(ShuffleMode shuffleMode) {
+        this.shuffleMode = shuffleMode;
+    }
 
     /**
      * 基于shuffleCols入口进行定义抽取列
@@ -108,8 +117,9 @@ public class GlobalConfig implements Serializable {
 
     /**
      * 设置抽取列和洗数模式
+     * 内部设置 不推荐外部设置
      */
-    public void setExtractCols(List<FieldInfo> extractCols) {
+    public void setExtractColsInternal(List<FieldInfo> extractCols) {
         this.extractCols0 = extractCols;
         if (extractCols != null) {
             LinkedHashMap<String, FieldInfo> shuffleCols0 = new LinkedHashMap<>();
