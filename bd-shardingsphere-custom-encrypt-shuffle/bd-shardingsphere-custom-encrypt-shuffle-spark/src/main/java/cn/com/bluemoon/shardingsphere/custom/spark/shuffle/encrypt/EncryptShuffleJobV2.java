@@ -2,6 +2,7 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJob;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJobGraceful;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
 import cn.hutool.core.lang.Assert;
 import lombok.Getter;
@@ -16,7 +17,7 @@ import org.apache.spark.sql.types.StructType;
  */
 @Slf4j
 @Getter
-public class EncryptShuffleJobV2 extends BaseShuffleJob implements EncryptShuffle {
+public class EncryptShuffleJobV2 extends BaseShuffleJobGraceful implements EncryptShuffle {
 
     public EncryptShuffleJobV2(EncryptGlobalConfig config) {
         super(config);
@@ -33,7 +34,7 @@ public class EncryptShuffleJobV2 extends BaseShuffleJob implements EncryptShuffl
     public void doShuffle(Dataset<Row> dataset, StructType schema, EncryptGlobalConfig globalConfig) {
         JavaRDD<Row> rowJavaRDD = dataset.toJavaRDD();
         rowJavaRDD
-                .repartition(Integer.parseInt(parallelNum))
+                .repartition(Integer.parseInt(BaseShuffleJob.parallelNum))
                 .mapPartitions(new EncryptFlatMapFunction(globalConfigBroadcast))
                 .foreachPartition(new EncryptShuffleForeachPartitionFunction(schema, globalConfigBroadcast));
     }

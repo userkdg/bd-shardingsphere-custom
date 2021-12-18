@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
@@ -14,6 +14,8 @@ import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
 import java.util.*;
 
 /**
+ * 迭代器模式多次抽取增量数据
+ *
  * @author Jarod.Kong
  */
 @Slf4j
@@ -21,12 +23,11 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
 
     private volatile String preExtractTimestamp;
     private volatile String curMaxIncrTimestamp;
-    private Dataset<Row> nextDfWithCache;
+    private volatile Dataset<Row> nextDfWithCache;
 
-    protected SparkDbExtractIWithIncTimestamp(EncryptGlobalConfig config, SparkSession spark) {
+    public SparkDbExtractIWithIncTimestamp(EncryptGlobalConfig config, SparkSession spark) {
         super(config, spark);
     }
-
 
     /**
      * 获取增量字段最大值
@@ -53,10 +54,8 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
 
     @Override
     public Dataset<Row> next() {
-        return nextDfWithCache;
+        return extract();
     }
-
-
 
     /**
      * 分析上一次和当前次 sql where片段
@@ -100,7 +99,7 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
         curMaxIncrTimestamp = Optional.ofNullable(topOne.getAs(config.getIncrTimestampCol())).map(String::valueOf).orElse(DateUtil.now());
         log.info("当前洗数阶段增量字段最大值为{}", curMaxIncrTimestamp);
         // 调整方案 普通模式跑一次，若是增量时间类型的就跑多次，直至没有新数据为止
-        Dataset<Row> nextDf = spark.read().format("jdbc").options(getSourceJdbcMaxIncrTimestampProps()).load();
+        Dataset<Row> nextDf = spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
         nextDfWithCache = nextDf.cache();
         incrExtractSize = nextDfWithCache.count();
         if (incrExtractSize > 0) {
@@ -112,5 +111,10 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
             log.info("增量数据为空，洗数结束！！");
             return null;
         }
+    }
+
+    @Override
+    public Dataset<Row> extract() {
+        return nextDfWithCache;
     }
 }

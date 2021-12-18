@@ -32,7 +32,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
     public static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
     public static final String SPARK_JDBC_DBTABLE_ALIAS = "a";
     public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
-    protected static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
+    public static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
     protected static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     protected static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
     // must static

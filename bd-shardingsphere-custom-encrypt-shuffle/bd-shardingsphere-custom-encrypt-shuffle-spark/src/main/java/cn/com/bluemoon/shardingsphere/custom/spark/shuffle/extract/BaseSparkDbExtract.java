@@ -1,14 +1,15 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig.MYSQL;
@@ -37,12 +38,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract {
         this.spark = spark;
     }
 
-    @Override
-    public Dataset<Row> extract(SparkSession spark) {
-        return spark.read().format("jdbc").options(getCustomJdbcReadProps()).load();
-    }
-
-    protected Map<String, String> getCustomJdbcReadProps() {
+    protected Map<String, String> getCustomDbTableJdbcReadProps() {
         Map<String, String> props = getSourceJdbcBasicProps();
         ExtractMode shuffleMode = config.getExtractMode();
         String dbTable = getDbTableByMode(shuffleMode, config.getDatabaseType());
@@ -102,10 +98,10 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract {
     }
 
     private String getSqlWhere(ExtractMode shuffleMode, List<String> fields, List<String> plainCols) {
-       if (shuffleMode == null) {
-           return " 1=1 ";
-       }
-       return getCustomWhereSql(shuffleMode, fields, plainCols);
+        if (shuffleMode == null) {
+            return " 1=1 ";
+        }
+        return getCustomWhereSql(shuffleMode, fields, plainCols);
     }
 
     protected abstract String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> plainCols);
