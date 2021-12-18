@@ -1,9 +1,10 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.ShardingProxyShuffleCli;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.ShardingProxyEncryptShuffleCli;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import com.google.gson.Gson;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.Dataset;
@@ -61,7 +62,7 @@ public class EncryptShuffleCliAllTest {
         configs.stream().map(EncryptGlobalConfigSwapper.gson::toJson)
                 .map(s -> new String[]{"-c=" + s})
                 .forEach(s -> {
-                    ShardingProxyShuffleCli.main(s);
+                    ShardingProxyEncryptShuffleCli.main(s);
                 });
     }
 

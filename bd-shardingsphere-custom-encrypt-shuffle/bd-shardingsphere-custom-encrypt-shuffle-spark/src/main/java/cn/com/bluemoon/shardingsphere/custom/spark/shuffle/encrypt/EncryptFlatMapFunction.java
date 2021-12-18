@@ -1,11 +1,8 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleFlatMapFunction;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
-import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmFactory;
-import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
-import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
 
@@ -14,33 +11,14 @@ import java.util.*;
 /**
  * @author Jarod.Kong
  */
-public class EncryptFlatMapFunction implements FlatMapFunction<Iterator<Row>, Map<String, Object>> {
-    public static final String CIPHER_SUFFIX = BaseEncryptShuffleJob.JDBC_PROXY_CIPHER_FILED_SUFFIX;
-
-    static {
-        ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
-    }
-
-    private final List<EncryptGlobalConfig.FieldInfo> plainCols;
-    private final List<EncryptGlobalConfig.FieldInfo> primaryCols;
+public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
 
     public EncryptFlatMapFunction(Broadcast<EncryptGlobalConfig> broadcast) {
-        this.plainCols = broadcast.getValue().getPlainCols();
-        this.primaryCols = broadcast.getValue().getPrimaryCols();
-    }
-
-    private static EncryptAlgorithm createEncryptAlgorithm(String type, Properties props) {
-        return ShardingSphereAlgorithmFactory
-                .createAlgorithm(new ShardingSphereAlgorithmConfiguration(type, props),
-                        EncryptAlgorithm.class);
-    }
-
-    public static String encryptFieldName(String plainName) {
-        return plainName + CIPHER_SUFFIX;
+        super(broadcast);
     }
 
     @Override
-    public Iterator<Map<String, Object>> call(Iterator<Row> iterator) {
+    protected List<Map<String, Object>> doFlatMap(Iterator<Row> iterator) {
         List<Map<String, Object>> rows = new ArrayList<>();
         while (iterator.hasNext()) {
             Row row = iterator.next();
@@ -59,6 +37,6 @@ public class EncryptFlatMapFunction implements FlatMapFunction<Iterator<Row>, Ma
             }
             rows.add(r);
         }
-        return rows.iterator();
+        return rows;
     }
 }

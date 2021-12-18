@@ -1,8 +1,8 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJob;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.DecryptShuffle;
 import cn.hutool.core.lang.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +16,9 @@ import org.apache.spark.sql.types.StructType;
  */
 @Slf4j
 @Getter
-public class EncryptShuffleJobV2 extends BaseShuffleJob implements EncryptShuffle {
+public class DecryptShuffleJob extends BaseShuffleJob implements DecryptShuffle {
 
-    public EncryptShuffleJobV2(EncryptGlobalConfig config) {
+    public DecryptShuffleJob(EncryptGlobalConfig config) {
         super(config);
     }
 
@@ -34,7 +34,7 @@ public class EncryptShuffleJobV2 extends BaseShuffleJob implements EncryptShuffl
         JavaRDD<Row> rowJavaRDD = dataset.toJavaRDD();
         rowJavaRDD
                 .repartition(Integer.parseInt(parallelNum))
-                .mapPartitions(new EncryptFlatMapFunction(globalConfigBroadcast))
-                .foreachPartition(new EncryptShuffleForeachPartitionFunction(schema, globalConfigBroadcast));
+                .mapPartitions(new DecryptFlatMapFunction(globalConfigBroadcast))
+                .foreachPartition(new DecryptForeachPartitionFunction(schema, globalConfigBroadcast));
     }
 }

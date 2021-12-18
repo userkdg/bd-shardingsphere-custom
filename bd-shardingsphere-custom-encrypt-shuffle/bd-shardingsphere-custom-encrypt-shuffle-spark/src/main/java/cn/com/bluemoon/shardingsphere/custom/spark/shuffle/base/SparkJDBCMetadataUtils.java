@@ -8,7 +8,7 @@ import java.sql.JDBCType;
 /**
  * @author Jarod.Kong
  */
-public class JDBCMetadataUtils {
+public class SparkJDBCMetadataUtils {
 
     public static JDBCType getFieldJDBCType(DataType dataType) {
         if (dataType == null) {

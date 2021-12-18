@@ -1,9 +1,9 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.ShardingProxyShuffleCli;
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.ShardingProxyEncryptShuffleCli;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +23,7 @@ public class EncryptShuffleCliTest {
         config.setPrimaryCols(Lists.newArrayList(
                 new EncryptGlobalConfig.FieldInfo("order_code")
 //                ,new EncryptGlobalConfig.FieldInfo("id")
-                ));
+        ));
         config.setOnYarn(false);
         config.setJobName("电商洗数-ec_order");
         config.setPlainCols(
@@ -33,7 +33,7 @@ public class EncryptShuffleCliTest {
                         new EncryptGlobalConfig.FieldInfo("address")
                 )
         );
-        config.setExtractMode(ExtractMode.OrNull);
+        config.setExtractMode(ExtractMode.All);
         String json = EncryptGlobalConfigSwapper.gson.toJson(config);
         System.out.println(json);
         EncryptGlobalConfig configEq = EncryptGlobalConfigSwapper.swapToConfig(json);
@@ -42,6 +42,6 @@ public class EncryptShuffleCliTest {
 
     @Test
     public void test() {
-        ShardingProxyShuffleCli.main(args);
+        ShardingProxyEncryptShuffleCli.main(args);
     }
 }

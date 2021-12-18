@@ -1,6 +1,8 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleForeachPartitionFunction;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
@@ -16,9 +18,9 @@ import java.util.stream.Collectors;
  * @author Jarod.Kong
  */
 @Slf4j
-public class EncryptJobForeachPartitionFunction extends BaseEncryptForeachPartitionFunction<Row> {
+public class EncryptShuffleJobForeachPartitionFunction extends BaseShuffleForeachPartitionFunction<Row> {
 
-    public EncryptJobForeachPartitionFunction(StructType schema, Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
+    public EncryptShuffleJobForeachPartitionFunction(StructType schema, Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
         super(schema, globalConfigBroadcast);
     }
 
@@ -33,7 +35,7 @@ public class EncryptJobForeachPartitionFunction extends BaseEncryptForeachPartit
             List<EncryptGlobalConfig.FieldInfo> plainColumnNames = globalConfig.getPlainCols();
             final String updateDynamicSql = getUpdateDynamicSql(primaryCols, plainColumnNames);
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
-                int batchSize = Integer.parseInt(EncryptShuffleJob.BATCH_SIZE);
+                int batchSize = Integer.parseInt(BaseShuffleJob.BATCH_SIZE);
                 int size = 0;
                 while (its.hasNext()) {
                     Row row = its.next();

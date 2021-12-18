@@ -3,7 +3,7 @@ package cn.com.bluemoon.shardingsphere.custom.cli;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkShuffleCli;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
@@ -53,7 +53,7 @@ public class EncryptShuffleCliV2TestEcOrder {
     @SneakyThrows
     @Test
     public void test() {
-        SparkShuffleCli.main(args);
+        SparkEncryptShuffleCli.main(args);
         TimeUnit.MINUTES.sleep(10);
     }
 }

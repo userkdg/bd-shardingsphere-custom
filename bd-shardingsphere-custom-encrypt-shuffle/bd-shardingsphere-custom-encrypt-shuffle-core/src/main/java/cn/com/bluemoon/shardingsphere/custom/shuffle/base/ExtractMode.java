@@ -11,8 +11,6 @@ import java.util.stream.Collectors;
 @Getter
 public enum ExtractMode {
     All(1, "全量抽取"),
-    OrNull(2, "多列OR且为null条件抽取"),
-    AndNull(3, "多列AND且为null条件抽取"),
     OtherCustom(4, "其他抽取方式，基于customExtractWhereSql字段来定义"),
     WithIncrTimestamp(5, "带增加时间字段抽取");
 

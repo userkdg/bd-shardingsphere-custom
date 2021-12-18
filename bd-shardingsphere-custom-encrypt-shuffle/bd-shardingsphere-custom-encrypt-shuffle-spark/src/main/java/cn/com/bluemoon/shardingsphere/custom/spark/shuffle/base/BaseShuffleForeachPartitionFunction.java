@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -12,16 +12,16 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 
-import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.JDBCMetadataUtils.getFieldJDBCType;
+import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.SparkJDBCMetadataUtils.getFieldJDBCType;
 
 /**
  * @author Jarod.Kong
  */
 @Slf4j
-public abstract class BaseEncryptForeachPartitionFunction<T> implements ForeachPartitionFunction<T> {
+public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachPartitionFunction<T> {
     protected final EncryptGlobalConfig globalConfig;
 
-    public BaseEncryptForeachPartitionFunction(StructType schema, Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
+    public BaseShuffleForeachPartitionFunction(StructType schema, Broadcast<EncryptGlobalConfig> globalConfigBroadcast) {
         this.globalConfig = globalColsTypeHandlerBySparkSchema(globalConfigBroadcast, schema);
     }
 

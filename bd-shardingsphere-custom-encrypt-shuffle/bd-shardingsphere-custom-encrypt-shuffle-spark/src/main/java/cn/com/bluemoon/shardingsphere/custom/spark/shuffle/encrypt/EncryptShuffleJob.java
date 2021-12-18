@@ -1,6 +1,8 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJob;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.FilterFunction;
@@ -14,7 +16,7 @@ import org.apache.spark.sql.types.StructType;
  */
 @Slf4j
 @Getter
-public class EncryptShuffleJob extends BaseEncryptShuffleJob {
+public class EncryptShuffleJob extends BaseShuffleJob implements EncryptShuffle {
 
     public EncryptShuffleJob(EncryptGlobalConfig config) {
         super(config);
@@ -24,7 +26,7 @@ public class EncryptShuffleJob extends BaseEncryptShuffleJob {
     public void doShuffle(Dataset<Row> dataset, StructType schema, EncryptGlobalConfig globalConfig) {
         dataset.filter((FilterFunction<Row>) row -> globalConfig.getPlainCols().stream().anyMatch(f -> row.getAs(f.getName()) != null))
                 .repartition(Integer.parseInt(parallelNum), globalConfig.getPrimaryCols().stream().map(g -> new Column(g.getName())).toArray(Column[]::new))
-                .foreachPartition(new EncryptJobForeachPartitionFunction(schema, globalConfigBroadcast));
+                .foreachPartition(new EncryptShuffleJobForeachPartitionFunction(schema, globalConfigBroadcast));
     }
 
 }

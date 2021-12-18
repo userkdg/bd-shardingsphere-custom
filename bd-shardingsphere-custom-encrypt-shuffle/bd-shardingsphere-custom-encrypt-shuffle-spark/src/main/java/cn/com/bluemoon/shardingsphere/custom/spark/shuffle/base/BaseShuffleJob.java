@@ -1,9 +1,7 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
+package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.ShuffleJob;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import lombok.Getter;
@@ -29,16 +27,14 @@ import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.EncryptGlobalCo
  */
 @Slf4j
 @Getter
-public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
+public abstract class BaseShuffleJob implements BaseShuffle {
     public static final String JDBC_PROXY_CIPHER_FILED_SUFFIX = "_cipher";
     public static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
     public static final String SPARK_JDBC_DBTABLE_ALIAS = "a";
-
+    public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
     protected static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
     protected static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     protected static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
-
-    protected static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
     // must static
     protected static Broadcast<EncryptGlobalConfig> globalConfigBroadcast;
 
@@ -47,7 +43,7 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     private volatile String preExtractTimestamp;
     private volatile String curMaxIncrTimestamp;
 
-    public BaseEncryptShuffleJob(EncryptGlobalConfig config) {
+    public BaseShuffleJob(EncryptGlobalConfig config) {
         this.config = config;
     }
 
@@ -61,11 +57,12 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     @Override
     public void shuffle() {
         init();
-        doShuffle();
+        shuffle0();
         finish();
     }
 
-    protected void doShuffle() {
+    protected void shuffle0() {
+        // TODO: 2021/12/18 改为pipeline方式 把抽取方式独立管理，不与本类耦合，spark改为全局变量支持获取session、sc spark读取的方式放到抽取类上
         try (SparkSession spark = getSparkSession(config.isOnYarn())) {
             if (ExtractMode.WithIncrTimestamp.equals(config.getExtractMode())) {
                 tryReShuffleWithIncFieldExtractMode(spark);
@@ -176,12 +173,6 @@ public abstract class BaseEncryptShuffleJob implements EncryptShuffle {
     private String getSqlWhere(ExtractMode shuffleMode, List<String> fields, List<String> plainCols) {
         if (ExtractMode.All.equals(shuffleMode)) {
             return " 1=1 ";
-        } else if (ExtractMode.AndNull.equals(shuffleMode)) {
-            List<String> fieldCiphers = plainCols.stream().map(f -> String.format("%s is null", wrappedCipherFieldAlias(f))).collect(Collectors.toList());
-            return String.join(" and ", fieldCiphers);
-        } else if (ExtractMode.OrNull.equals(shuffleMode)) {
-            List<String> fieldCiphers = plainCols.stream().map(f -> String.format("%s is null", wrappedCipherFieldAlias(f))).collect(Collectors.toList());
-            return String.join(" or ", fieldCiphers);
         } else if (ExtractMode.OtherCustom.equals(shuffleMode)) {
             return Optional.ofNullable(config.getCustomExtractWhereSql()).orElse(" 1=1 ");
         } else if (ExtractMode.WithIncrTimestamp.equals(shuffleMode)) {
