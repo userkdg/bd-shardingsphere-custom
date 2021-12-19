@@ -19,13 +19,13 @@ import java.util.*;
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implements Iterator<Dataset<Row>> {
+public class SparkDbExtractIWithIncField extends BaseSparkDbExtract implements Iterator<Dataset<Row>> {
 
     private volatile String preExtractTimestamp;
     private volatile String curMaxIncrTimestamp;
     private volatile Dataset<Row> nextDfWithCache;
 
-    public SparkDbExtractIWithIncTimestamp(GlobalConfig config, SparkSession spark) {
+    public SparkDbExtractIWithIncField(GlobalConfig config, SparkSession spark) {
         super(config, spark);
     }
 
@@ -116,5 +116,10 @@ public class SparkDbExtractIWithIncTimestamp extends BaseSparkDbExtract implemen
     @Override
     public Dataset<Row> extract() {
         return nextDfWithCache;
+    }
+
+    @Override
+    public String type() {
+        return ExtractMode.WithIncField.getName();
     }
 }

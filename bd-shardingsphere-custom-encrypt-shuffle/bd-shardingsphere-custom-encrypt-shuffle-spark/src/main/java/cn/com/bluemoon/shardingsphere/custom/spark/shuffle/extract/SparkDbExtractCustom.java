@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 全量一次性
+ * 自定义查询方式一次性抽取
  *
  * @author Jarod.Kong
  */
-public class SparkDbCustomExtract extends BaseSparkDbExtract {
+public class SparkDbExtractCustom extends BaseSparkDbExtract {
 
-    public SparkDbCustomExtract(GlobalConfig config, SparkSession spark) {
+    public SparkDbExtractCustom(GlobalConfig config, SparkSession spark) {
         super(config, spark);
     }
 
@@ -30,5 +30,10 @@ public class SparkDbCustomExtract extends BaseSparkDbExtract {
     @Override
     public Dataset<Row> extract() {
         return spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
+    }
+
+    @Override
+    public String type() {
+        return ExtractMode.OtherCustom.getName();
     }
 }

@@ -28,4 +28,9 @@ public class SparkDbExtractAll extends BaseSparkDbExtract {
     public Dataset<Row> extract() {
         return spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
     }
+
+    @Override
+    public String type() {
+        return ExtractMode.All.getName();
+    }
 }

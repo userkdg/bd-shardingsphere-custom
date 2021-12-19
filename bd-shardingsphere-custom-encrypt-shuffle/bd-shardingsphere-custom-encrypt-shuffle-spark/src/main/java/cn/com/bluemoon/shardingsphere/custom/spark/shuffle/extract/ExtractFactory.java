@@ -1,7 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import org.apache.spark.sql.SparkSession;
 
 /**
@@ -17,9 +17,9 @@ public class ExtractFactory {
     public static SparkDbExtract createDbExtract(GlobalConfig config, SparkSession spark) {
         // FIXME: 2021/12/18 可以优化为SPI+ExtractTypeString 动态增加抽取方式
         if (ExtractMode.WithIncField.equals(config.getExtractMode())) {
-            return new SparkDbExtractIWithIncTimestamp(config, spark);
+            return new SparkDbExtractIWithIncField(config, spark);
         } else if (ExtractMode.OtherCustom.equals(config.getExtractMode())) {
-            return new SparkDbCustomExtract(config, spark);
+            return new SparkDbExtractCustom(config, spark);
         } else {
             return new SparkDbExtractAll(config, spark);
         }

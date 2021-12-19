@@ -2,6 +2,7 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
@@ -19,7 +20,7 @@ import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig.PO
  * @author Jarod.Kong
  */
 @Slf4j
-public abstract class BaseSparkDbExtract implements SparkDbExtract {
+public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
 
@@ -32,8 +33,11 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract {
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
 
-    protected final GlobalConfig config;
-    protected final SparkSession spark;
+    @Setter
+    protected GlobalConfig config;
+
+    @Setter
+    protected SparkSession spark;
 
     protected BaseSparkDbExtract(GlobalConfig config, SparkSession spark) {
         this.config = config;
