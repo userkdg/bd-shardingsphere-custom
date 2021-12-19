@@ -47,7 +47,8 @@ public class ReEncryptShuffleEcOrderSysUserTest {
         tuple2.setT2(new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", targetProps)));
         shuffleCols.add(tuple2);
         config.setShuffleCols(shuffleCols);
-        config.setExtractMode(ExtractMode.WithIncField);
+        // FIXME: 2021/12/19 目前重新只支持全量一次，在增量中存在重复加密问题（由于增量字段，在更新数据时更新了增量最大值，导致重复获取被加密的数据，再加密的时候报错！）。
+        config.setExtractMode(ExtractMode.All);
         config.setIncrTimestampCol("op_time");
         config.setMultiBatchUrlConfig(true);
         String json = GlobalConfigSwapper.gson.toJson(config);

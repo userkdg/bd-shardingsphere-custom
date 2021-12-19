@@ -1,7 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.reencrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJobGraceful;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJob;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.EncryptShuffle;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt.DecryptFlatMapFunction;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.EncryptFlatMapFunction;
@@ -19,7 +19,7 @@ import java.util.Map;
  */
 @Slf4j
 @Getter
-public class ReEncryptShuffleJob extends BaseShuffleJobGraceful implements EncryptShuffle {
+public class ReEncryptShuffleJob extends BaseShuffleJob implements EncryptShuffle {
     public static final String CIPHER_SUFFIX = System.getProperty("cipher.suffix", "_cipher");
 
     public ReEncryptShuffleJob(GlobalConfig config) {

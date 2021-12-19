@@ -23,7 +23,7 @@ import java.util.Map;
  */
 @Slf4j
 @Getter
-public abstract class BaseShuffleJobGraceful implements BaseShuffle {
+public abstract class BaseShuffleJob implements BaseShuffle {
 
     public static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", BaseSparkDbExtract.parallelNum);
 
@@ -32,7 +32,7 @@ public abstract class BaseShuffleJobGraceful implements BaseShuffle {
 
     protected final GlobalConfig config;
 
-    public BaseShuffleJobGraceful(GlobalConfig config) {
+    public BaseShuffleJob(GlobalConfig config) {
         this.config = config;
     }
 
