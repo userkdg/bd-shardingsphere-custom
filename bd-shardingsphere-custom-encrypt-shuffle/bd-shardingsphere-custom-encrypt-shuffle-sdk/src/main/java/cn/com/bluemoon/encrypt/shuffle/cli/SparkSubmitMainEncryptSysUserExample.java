@@ -5,9 +5,7 @@ import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author Jarod.Kong
@@ -28,15 +26,18 @@ public class SparkSubmitMainEncryptSysUserExample {
                 new GlobalConfig.FieldInfo("id")
         ));
         config.setPartitionCol(new GlobalConfig.FieldInfo("id"));
-        config.setOnYarn(true);
+        config.setOnYarn(false);
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
-        Properties props = new Properties();
-        props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setShuffleCols(
-                new LinkedHashMap<String, GlobalConfig.FieldInfo>() {{
-                    put("phone", new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", props)));
-                }}
-        );
+
+        Properties sourceProps = new Properties();
+        sourceProps.put("aes-key-value", "wlf1d5mmal2xsttr");
+        List<GlobalConfig.Tuple2<GlobalConfig.FieldInfo>> shuffleCols = new LinkedList<>();
+        GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple2 = new GlobalConfig.Tuple2<>();
+        tuple2.setT1(new GlobalConfig.FieldInfo("phone"));
+        tuple2.setT2(new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        shuffleCols.add(tuple2);
+        config.setShuffleCols(shuffleCols);
+
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
         config.setMultiBatchUrlConfig(true);

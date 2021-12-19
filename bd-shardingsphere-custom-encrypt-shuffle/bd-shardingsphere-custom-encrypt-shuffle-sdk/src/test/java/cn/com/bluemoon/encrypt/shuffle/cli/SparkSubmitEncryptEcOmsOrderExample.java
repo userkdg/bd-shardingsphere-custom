@@ -5,15 +5,13 @@ import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkSubmitDecryptEcOmsOrderExample {
+public class SparkSubmitEncryptEcOmsOrderExample {
     private static String exampleArg = "";
     private static String jobName = "";
 
@@ -30,13 +28,28 @@ public class SparkSubmitDecryptEcOmsOrderExample {
         config.setPartitionCol(new GlobalConfig.FieldInfo("order_code"));
         config.setOnYarn(true);
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
-        Properties props = new Properties();
-        props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setShuffleCols(new LinkedHashMap<String, GlobalConfig.FieldInfo>() {{
-            put("address_cipher", new GlobalConfig.FieldInfo("address_plain", new GlobalConfig.EncryptRule("AES", props)));
-            put("receiver_mobile_cipher", new GlobalConfig.FieldInfo("receiver_mobile_plain", new GlobalConfig.EncryptRule("AES", props)));
-            put("receiver_name_cipher", new GlobalConfig.FieldInfo("receiver_name_plain", new GlobalConfig.EncryptRule("AES", props)));
-        }});
+
+        // 加密
+        Properties sourceProps = new Properties();
+        sourceProps.put("aes-key-value", "wlf1d5mmal2xsttr");
+        List<GlobalConfig.Tuple2<GlobalConfig.FieldInfo>> shuffleCols = new LinkedList<>();
+        GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple1 = new GlobalConfig.Tuple2<>();
+        tuple1.setT1(new GlobalConfig.FieldInfo("address", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        tuple1.setT2(new GlobalConfig.FieldInfo("address_cipher"));
+        shuffleCols.add(tuple1);
+
+        GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple2 = new GlobalConfig.Tuple2<>();
+        tuple2.setT1(new GlobalConfig.FieldInfo("receiver_mobile", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        tuple2.setT2(new GlobalConfig.FieldInfo("receiver_mobile_cipher"));
+        shuffleCols.add(tuple2);
+
+        GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple3 = new GlobalConfig.Tuple2<>();
+        tuple3.setT1(new GlobalConfig.FieldInfo("receiver_name", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        tuple3.setT2(new GlobalConfig.FieldInfo("receiver_name_cipher"));
+        shuffleCols.add(tuple3);
+
+        config.setShuffleCols(shuffleCols);
+
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("last_update_time");
         config.setMultiBatchUrlConfig(true);
@@ -49,6 +62,6 @@ public class SparkSubmitDecryptEcOmsOrderExample {
     }
 
     public static void main(String[] args) {
-        SparkSubmitDecryptShuffleMain.main(new String[]{exampleArg, jobName});
+        SparkSubmitEncryptShuffleMain.main(new String[]{exampleArg, jobName});
     }
 }
