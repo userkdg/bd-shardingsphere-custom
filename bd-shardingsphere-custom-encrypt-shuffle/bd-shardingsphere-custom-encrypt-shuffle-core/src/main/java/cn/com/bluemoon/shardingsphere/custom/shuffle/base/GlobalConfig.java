@@ -78,6 +78,12 @@ public class GlobalConfig implements Serializable {
      * </pre>
      */
     private List<Tuple2<FieldInfo>> shuffleCols = new LinkedList<>();
+
+    /**
+     * 用于重加密，需要三个字段
+     */
+    private List<Tuple3<FieldInfo>> reShuffleCols = new LinkedList<>();
+
     /**
      * 定义洗数模式
      */
@@ -232,6 +238,14 @@ public class GlobalConfig implements Serializable {
     public static class Tuple2<T> implements Serializable {
         private T t1;
         private T t2;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Tuple3<T> extends Tuple2<T> {
+        private T t3;
     }
 
     @Setter
