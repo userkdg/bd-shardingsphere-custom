@@ -1,10 +1,12 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ShuffleHandler;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSparkDbExtract;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.ExtractFactory;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.SparkDbExtract;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -17,6 +19,7 @@ import org.apache.spark.sql.types.StructType;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Jarod.Kong
@@ -32,6 +35,9 @@ public abstract class BaseShuffleJob implements BaseShuffle {
 
     protected final GlobalConfig config;
 
+    @Setter
+    private ShuffleHandler beforeHandler, afterHandler;
+
     public BaseShuffleJob(GlobalConfig config) {
         this.config = config;
     }
@@ -41,6 +47,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
         if (config.getExtractCols() == null || config.getExtractCols().isEmpty()) {
             throw new RuntimeException("洗数字段不可为空");
         }
+        Optional.ofNullable(beforeHandler).ifPresent(h -> h.handler(config));
     }
 
     @Override
@@ -86,6 +93,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
     @Override
     public void finish() {
         log.info("run done !!");
+        Optional.ofNullable(afterHandler).ifPresent(h -> h.handler(config));
     }
 
 

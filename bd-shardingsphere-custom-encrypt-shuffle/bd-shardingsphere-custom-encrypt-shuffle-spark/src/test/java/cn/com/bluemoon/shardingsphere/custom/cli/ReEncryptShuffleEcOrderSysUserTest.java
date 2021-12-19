@@ -51,13 +51,13 @@ public class ReEncryptShuffleEcOrderSysUserTest {
         // 2明文没有加密规则，不用设置
         // 3密文（需要加密），需要设置
         // 也就是密文列都要设置对应的加密规则
-        tuple3.setT1(new FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", targetProps)));
+        tuple3.setT1(new FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
         tuple3.setT2(new FieldInfo("phone_plain"));
-        tuple3.setT3(new FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        tuple3.setT3(new FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", targetProps)));
         reShuffleCols.add(tuple3);
         config.setReShuffleCols(reShuffleCols);
 
-        // FIXME: 2021/12/19 目前重新只支持全量一次，在增量中存在重复加密问题（由于增量字段，在更新数据时更新了增量最大值，导致重复获取被加密的数据，再加密的时候报错！）。
+        // 在增量中存在重复加密问题（由于增量字段，在更新数据时更新了增量最大值，导致重复获取被加密的数据，再加密的时候报错！）。
         // 如果一定要走增量重加密，可以首次用spark解密完成后，再进行spark加密，两个步骤都独立执行，就可以避免反复拉取更新数据的问题
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
