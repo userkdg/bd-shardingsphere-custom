@@ -7,6 +7,7 @@ import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.SparkDbExtrac
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Dataset;
@@ -15,6 +16,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author Jarod.Kong
@@ -58,12 +60,12 @@ public abstract class BaseShuffleJobGraceful implements BaseShuffle {
                 while (itr.hasNext()) {
                     Dataset<Row> df = itr.next();
                     log.info("开始{}模式更新源表", config.getExtractMode());
-                    doShuffle(df, df.schema(), globalConfigBroadcast.getValue());
+                    doShuffleDf(df, df.schema(), globalConfigBroadcast.getValue());
                 }
             } else {
                 Dataset<Row> df = dbExtract.extract();
                 log.info("开始{}模式更新源表", config.getExtractMode());
-                doShuffle(df, df.schema(), globalConfigBroadcast.getValue());
+                doShuffleDf(df, df.schema(), globalConfigBroadcast.getValue());
             }
             log.info("{}模式，洗数结束！！", config.getExtractMode());
         }
@@ -72,7 +74,14 @@ public abstract class BaseShuffleJobGraceful implements BaseShuffle {
     /**
      * 负责转换（洗数）、入库
      */
-    public abstract void doShuffle(Dataset<Row> dataset, StructType schema, GlobalConfig globalConfig);
+    protected void doShuffleDf(Dataset<Row> dataset, StructType schema, GlobalConfig globalConfig) {
+        JavaRDD<Map<String, Object>> javaRDD = dataset.toJavaRDD()
+                .repartition(Integer.parseInt(parallelNum))
+                .mapPartitions(new RowToMapFlatMapFunction());
+        doShuffle(javaRDD, schema, globalConfig);
+    }
+
+    protected abstract void doShuffle(JavaRDD<Map<String, Object>> javaRDD, StructType schema, GlobalConfig globalConfig);
 
     @Override
     public void finish() {

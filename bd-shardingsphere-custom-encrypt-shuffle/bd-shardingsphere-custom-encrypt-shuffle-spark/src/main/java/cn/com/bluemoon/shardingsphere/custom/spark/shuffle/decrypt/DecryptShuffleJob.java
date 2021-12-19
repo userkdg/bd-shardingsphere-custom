@@ -3,6 +3,7 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleJobGraceful;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.DecryptShuffle;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.RowToMapFlatMapFunction;
 import cn.hutool.core.lang.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.types.StructType;
+
+import java.util.Map;
 
 /**
  * @author Jarod.Kong
@@ -35,10 +38,8 @@ public class DecryptShuffleJob extends BaseShuffleJobGraceful implements Decrypt
     }
 
     @Override
-    public void doShuffle(Dataset<Row> dataset, StructType schema, GlobalConfig globalConfig) {
-        JavaRDD<Row> rowJavaRDD = dataset.toJavaRDD();
-        rowJavaRDD
-                .repartition(Integer.parseInt(parallelNum))
+    public void doShuffle(JavaRDD<Map<String, Object>> javaRDD, StructType schema, GlobalConfig globalConfig) {
+        javaRDD
                 .mapPartitions(new DecryptFlatMapFunction(globalConfigBroadcast))
                 .foreachPartition(new DecryptForeachPartitionFunction(schema, globalConfigBroadcast));
     }

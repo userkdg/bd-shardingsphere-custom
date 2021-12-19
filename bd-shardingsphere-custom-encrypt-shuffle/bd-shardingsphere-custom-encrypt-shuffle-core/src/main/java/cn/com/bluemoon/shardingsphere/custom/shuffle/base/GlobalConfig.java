@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import lombok.*;
 
 import java.io.Serializable;
@@ -58,19 +59,14 @@ public class GlobalConfig implements Serializable {
      */
     private String jobName = "bd-spark-kms-shuffle-job";
 
+
     /**
+     * 动态定义抽取字段、洗数到哪个字段及其规则
      * 字段名称+类型，有序
      * 1.明->密：表示plain Columns 明文列 eg: address -> address_cipher
      * 2.密->明：表示cipher Columns 密文列 eg: address_cipher -> address_plain
      * 即可：不同洗数目的对应不同字段列，而获取方式统一
      * 对明文、密文进行洗数，都统一命名为抽取列
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private List<FieldInfo> extractCols0;
-
-    /**
-     * 动态定义抽取字段、洗数到哪个字段及其规则
      * <pre>
      * key: address
      * value:
@@ -81,7 +77,7 @@ public class GlobalConfig implements Serializable {
      *          props: aes-key-value: xxx
      * </pre>
      */
-    private LinkedHashMap<String, FieldInfo> shuffleCols = new LinkedHashMap<>();
+    private List<Tuple2<FieldInfo>> shuffleCols = new LinkedList<>();
     /**
      * 定义洗数模式
      */
@@ -90,7 +86,6 @@ public class GlobalConfig implements Serializable {
      * 转换url是否支持multi batch操作
      */
     private boolean multiBatchUrlConfig;
-
     /**
      * 洗数模式
      */
@@ -110,9 +105,12 @@ public class GlobalConfig implements Serializable {
      */
     public List<FieldInfo> getExtractCols() {
         Assert.isTrue(shuffleCols != null && !shuffleCols.isEmpty(), "洗数表字段不可为空");
-        List<FieldInfo> extractCols = shuffleCols.entrySet().stream().map(e -> new FieldInfo(e.getKey(), e.getValue().getEncryptRule())).collect(Collectors.toList());
-        this.extractCols0 = extractCols;
-        return extractCols;
+        return shuffleCols.stream().map(Tuple2::getT1).collect(Collectors.toList());
+    }
+
+    public List<FieldInfo> getTargetCols() {
+        Assert.isTrue(shuffleCols != null && !shuffleCols.isEmpty(), "洗数表字段不可为空");
+        return shuffleCols.stream().map(Tuple2::getT2).collect(Collectors.toList());
     }
 
     /**
@@ -120,20 +118,11 @@ public class GlobalConfig implements Serializable {
      * 内部设置 不推荐外部设置
      */
     public void setExtractColsInternal(List<FieldInfo> extractCols) {
-        this.extractCols0 = extractCols;
         if (extractCols != null) {
-            LinkedHashMap<String, FieldInfo> shuffleCols0 = new LinkedHashMap<>();
-            for (FieldInfo extractCol : extractCols) {
-                FieldInfo oldTargetCol = Optional.ofNullable(shuffleCols.get(extractCol.getName()))
-                        .orElseGet(() -> {
-                            Objects.requireNonNull(shuffleMode, "在无指定目标列下，洗数模式不可为空");
-                            return new FieldInfo(extractCol.getName() + shuffleMode.getSuffix(), extractCol.getType(), extractCol.getEncryptRule());
-                        });
-                oldTargetCol.setType(extractCol.getType());
-                oldTargetCol.setEncryptRule(extractCol.getEncryptRule());
-                shuffleCols0.put(extractCol.getName(), oldTargetCol);
+            for (int i = 0; i < extractCols.size(); i++) {
+                Tuple2<FieldInfo> fieldTuple = shuffleCols.get(i);
+                fieldTuple.setT1(extractCols.get(i));
             }
-            this.shuffleCols = shuffleCols0;
         }
     }
 
@@ -144,12 +133,15 @@ public class GlobalConfig implements Serializable {
      */
     public Optional<FieldInfo> getTargetCol(String extractCol) {
         Assert.isTrue(shuffleCols != null && !shuffleCols.isEmpty(), "洗数表字段不可为空");
-        FieldInfo targetCol = shuffleCols.get(extractCol);
-        return Optional.ofNullable(targetCol);
+        return shuffleCols.stream().filter(t -> StrUtil.equalsIgnoreCase(t.getT1().getName(), extractCol)).map(Tuple2::getT2).findFirst();
     }
 
     public String getTargetColOrElse(String extractColName, String defaultTargetCol) {
         return getTargetCol(extractColName).map(FieldInfo::getName).orElse(defaultTargetCol);
+    }
+
+    public FieldInfo getTargetColOrElse(String extractColName, FieldInfo defaultTargetCol) {
+        return getTargetCol(extractColName).orElse(defaultTargetCol);
     }
 
     public Optional<FieldInfo> getPartitionColOpt() {
@@ -210,7 +202,6 @@ public class GlobalConfig implements Serializable {
                 .add("customExtractWhereSql='" + customExtractWhereSql + "'")
                 .add("onYarn=" + onYarn)
                 .add("jobName='" + jobName + "'")
-                .add("extractCols0=" + extractCols0)
                 .add("shuffleCols=" + shuffleCols)
                 .add("extractMode=" + extractMode)
                 .add("multiBatchUrlConfig=" + multiBatchUrlConfig)
@@ -221,7 +212,9 @@ public class GlobalConfig implements Serializable {
     @Getter
     public enum ShuffleMode {
         ENCRYPT(1, "_cipher", "明->密"),
-        DECRYPT(2, "_plain", "密->明");
+        DECRYPT(2, "_plain", "密->明"),
+        RE_ENCRYPT(3, "", "重加密：密->明->密");
+
         private final int code;
         private final String suffix, desc;
 
@@ -230,6 +223,15 @@ public class GlobalConfig implements Serializable {
             this.suffix = suffix;
             this.desc = desc;
         }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Tuple2<T> implements Serializable {
+        private T t1;
+        private T t2;
     }
 
     @Setter
@@ -259,6 +261,26 @@ public class GlobalConfig implements Serializable {
             this.name = name;
             this.encryptRule = encryptRule;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            FieldInfo fieldInfo = (FieldInfo) o;
+
+            if (!Objects.equals(name, fieldInfo.name)) return false;
+            if (!Objects.equals(type, fieldInfo.type)) return false;
+            return Objects.equals(encryptRule, fieldInfo.encryptRule);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (type != null ? type.hashCode() : 0);
+            result = 31 * result + (encryptRule != null ? encryptRule.hashCode() : 0);
+            return result;
+        }
     }
 
     @Getter
@@ -273,5 +295,23 @@ public class GlobalConfig implements Serializable {
          * aes-key-value='xx'
          */
         private final Properties props;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            EncryptRule that = (EncryptRule) o;
+
+            if (!Objects.equals(type, that.type)) return false;
+            return Objects.equals(props, that.props);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = type != null ? type.hashCode() : 0;
+            result = 31 * result + (props != null ? props.hashCode() : 0);
+            return result;
+        }
     }
 }

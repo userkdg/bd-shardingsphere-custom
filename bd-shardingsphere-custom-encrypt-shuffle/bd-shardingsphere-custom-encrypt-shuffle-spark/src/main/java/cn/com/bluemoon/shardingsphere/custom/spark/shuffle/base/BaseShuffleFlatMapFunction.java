@@ -17,7 +17,7 @@ import java.util.Properties;
 /**
  * @author Jarod.Kong
  */
-public abstract class BaseShuffleFlatMapFunction implements FlatMapFunction<Iterator<Row>, Map<String, Object>> {
+public abstract class BaseShuffleFlatMapFunction implements FlatMapFunction<Iterator<Map<String, Object>>, Map<String, Object>> {
 
     static {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
@@ -43,10 +43,10 @@ public abstract class BaseShuffleFlatMapFunction implements FlatMapFunction<Iter
     }
 
     @Override
-    public Iterator<Map<String, Object>> call(Iterator<Row> iterator) {
+    public Iterator<Map<String, Object>> call(Iterator<Map<String, Object>> iterator) {
         List<Map<String, Object>> rows = doFlatMap(iterator);
         return rows.iterator();
     }
 
-    protected abstract List<Map<String, Object>> doFlatMap(Iterator<Row> iterator);
+    protected abstract List<Map<String, Object>> doFlatMap(Iterator<Map<String, Object>> iterator);
 }

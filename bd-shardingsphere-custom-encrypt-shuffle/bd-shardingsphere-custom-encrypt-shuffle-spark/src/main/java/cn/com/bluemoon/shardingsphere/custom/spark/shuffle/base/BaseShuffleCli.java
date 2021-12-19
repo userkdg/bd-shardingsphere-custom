@@ -36,6 +36,7 @@ public abstract class BaseShuffleCli implements CliRunner {
             log.info("启用jdbc multi batch execute Mode");
         }
         BaseShuffle shuffle = getCustomShuffleJob(config);
+        log.info("洗数模式为：{}", config.getShuffleMode());
         shuffle.shuffle();
     }
 

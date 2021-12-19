@@ -20,24 +20,24 @@ public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
     }
 
     @Override
-    protected List<Map<String, Object>> doFlatMap(Iterator<Row> iterator) {
+    protected List<Map<String, Object>> doFlatMap(Iterator<Map<String, Object>> iterator) {
         List<Map<String, Object>> rows = new ArrayList<>();
         while (iterator.hasNext()) {
-            Row row = iterator.next();
+            Map<String, Object> row = iterator.next();
             Map<String, Object> r = new HashMap<>();
             for (GlobalConfig.FieldInfo extractCol : extractCols) {
                 String extractColName = extractCol.getName();
-                Object val = row.getAs(extractColName);
-                GlobalConfig.EncryptRule encryptRule = extractCol.getEncryptRule();
+                Object val = row.get(extractColName);
+                r.put(extractColName, val);
+                GlobalConfig.FieldInfo targetCol = globalConfig.getTargetColOrElse(extractColName, extractCol);
+                GlobalConfig.EncryptRule encryptRule = targetCol.getEncryptRule();
                 String type = encryptRule.getType();
                 EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
                 String cipherText = encryptAlgorithm.encrypt(val);
-                r.put(extractColName, val);
-                String targetCol = globalConfig.getTargetColOrElse(extractColName, encryptFieldName(extractColName));
-                r.put(targetCol, cipherText);
+                r.put(targetCol.getName(), cipherText);
             }
             for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
-                r.put(primaryCol.getName(), row.getAs(primaryCol.getName()));
+                r.put(primaryCol.getName(), row.get(primaryCol.getName()));
             }
             rows.add(r);
         }

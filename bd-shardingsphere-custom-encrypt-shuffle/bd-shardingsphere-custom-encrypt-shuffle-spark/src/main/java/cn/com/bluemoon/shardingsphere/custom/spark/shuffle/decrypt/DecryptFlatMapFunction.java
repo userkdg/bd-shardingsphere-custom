@@ -20,14 +20,14 @@ public class DecryptFlatMapFunction extends BaseShuffleFlatMapFunction {
     }
 
     @Override
-    protected List<Map<String, Object>> doFlatMap(Iterator<Row> iterator) {
+    protected List<Map<String, Object>> doFlatMap(Iterator<Map<String, Object>> iterator) {
         List<Map<String, Object>> rows = new ArrayList<>();
         while (iterator.hasNext()) {
-            Row row = iterator.next();
+            Map<String, Object> row = iterator.next();
             Map<String, Object> r = new HashMap<>();
             for (GlobalConfig.FieldInfo extractCol : extractCols) {
                 String extractColName = extractCol.getName();
-                Object val = row.getAs(extractColName);
+                Object val = row.get(extractColName);
                 GlobalConfig.EncryptRule encryptRule = extractCol.getEncryptRule();
                 String type = encryptRule.getType();
                 EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
@@ -37,7 +37,7 @@ public class DecryptFlatMapFunction extends BaseShuffleFlatMapFunction {
                 r.put(targetColName, plainText);
             }
             for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
-                r.put(primaryCol.getName(), row.getAs(primaryCol.getName()));
+                r.put(primaryCol.getName(), row.get(primaryCol.getName()));
             }
             rows.add(r);
         }

@@ -4,20 +4,23 @@ import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkReEncryptShuffleCli;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Properties;
+import java.util.*;
 
 /**
+ * 重加密
+ * 说明：对已加密数据进行修改密文
+ * 密文->明文->重新加密->密文
+ *
  * @author Jarod.Kong
  */
 @Slf4j
-public class EncryptShuffleCliV2TestEcOrderSysUser {
+public class ReEncryptShuffleEcOrderSysUserTest {
     private String[] args;
 
     @Before
@@ -34,11 +37,16 @@ public class EncryptShuffleCliV2TestEcOrderSysUser {
         config.setPartitionCol(new GlobalConfig.FieldInfo("id"));
         config.setOnYarn(false);
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
-        Properties props = new Properties();
-        props.put("aes-key-value", "wlf1d5mmal2xsttr");
-        config.setShuffleCols(new LinkedHashMap<String, GlobalConfig.FieldInfo>() {{
-            put("phone", new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", props)));
-        }});
+        Properties sourceProps = new Properties();
+        sourceProps.put("aes-key-value", "wlf1d5mmal2xsttr");
+        Properties targetProps = new Properties();
+        targetProps.put("aes-key-value", "wlf1d5mmal2xstta");
+        List<GlobalConfig.Tuple2<GlobalConfig.FieldInfo>> shuffleCols = new LinkedList<>();
+        GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple2 = new GlobalConfig.Tuple2<>();
+        tuple2.setT1(new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        tuple2.setT2(new GlobalConfig.FieldInfo("phone_cipher", new GlobalConfig.EncryptRule("AES", targetProps)));
+        shuffleCols.add(tuple2);
+        config.setShuffleCols(shuffleCols);
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
         config.setMultiBatchUrlConfig(true);
@@ -53,7 +61,7 @@ public class EncryptShuffleCliV2TestEcOrderSysUser {
     @SneakyThrows
     @Test
     public void test() {
-        SparkEncryptShuffleCli.main(args);
+        SparkReEncryptShuffleCli.main(args);
 
     }
 }
