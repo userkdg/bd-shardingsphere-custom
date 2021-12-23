@@ -31,7 +31,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
     public static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", BaseSparkDbExtract.parallelNum);
 
     // must static
-    protected static Broadcast<GlobalConfig> globalConfigBroadcast;
+    protected static volatile Broadcast<GlobalConfig> globalConfigBroadcast = null;
 
     protected final GlobalConfig config;
 
@@ -40,6 +40,18 @@ public abstract class BaseShuffleJob implements BaseShuffle {
 
     public BaseShuffleJob(GlobalConfig config) {
         this.config = config;
+    }
+
+    public static void getBroadcastInstance(SparkSession spark, GlobalConfig config) {
+        JavaSparkContext sc = new JavaSparkContext(spark.sparkContext());
+        sc.setLogLevel("INFO");
+        if (globalConfigBroadcast == null) {
+            synchronized (BaseShuffleJob.class) {
+                if (globalConfigBroadcast == null) {
+                    globalConfigBroadcast = sc.broadcast(config);
+                }
+            }
+        }
     }
 
     public void init() {
@@ -60,6 +72,8 @@ public abstract class BaseShuffleJob implements BaseShuffle {
     @SuppressWarnings("unchecked")
     protected void shuffle0() {
         try (SparkSession spark = getSparkSession(config.isOnYarn())) {
+            getBroadcastInstance(spark, config);
+            // 抽取（一次或多次）
             SparkDbExtract dbExtract = ExtractFactory.createDbExtract(config, spark);
             if (dbExtract instanceof Iterator) {
                 Iterator<Dataset<Row>> itr = (Iterator<Dataset<Row>>) dbExtract;
@@ -96,14 +110,9 @@ public abstract class BaseShuffleJob implements BaseShuffle {
         Optional.ofNullable(afterHandler).ifPresent(h -> h.handler(config));
     }
 
-
     private SparkSession getSparkSession(boolean onYarn) {
         SparkConf conf = new SparkConf().setAppName(config.getJobName());
         if (!onYarn) conf.setMaster("local[*]");
-        JavaSparkContext sc = new JavaSparkContext(conf);
-        sc.setLogLevel("INFO");
-        globalConfigBroadcast = sc.broadcast(config);
         return SparkSession.builder().config(conf).getOrCreate();
     }
-
 }

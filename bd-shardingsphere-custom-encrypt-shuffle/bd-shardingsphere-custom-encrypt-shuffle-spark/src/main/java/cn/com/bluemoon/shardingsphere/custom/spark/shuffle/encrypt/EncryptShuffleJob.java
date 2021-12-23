@@ -18,10 +18,10 @@ import java.util.Map;
 @Getter
 public class EncryptShuffleJob extends BaseShuffleJob implements EncryptShuffle {
     public static final String CIPHER_SUFFIX = System.getProperty("cipher.suffix", "_cipher");
-     public EncryptShuffleJob(GlobalConfig config) {
+
+    public EncryptShuffleJob(GlobalConfig config) {
         super(config);
     }
-
 
     public static String encryptFieldName(String plainName) {
         return plainName + CIPHER_SUFFIX;
