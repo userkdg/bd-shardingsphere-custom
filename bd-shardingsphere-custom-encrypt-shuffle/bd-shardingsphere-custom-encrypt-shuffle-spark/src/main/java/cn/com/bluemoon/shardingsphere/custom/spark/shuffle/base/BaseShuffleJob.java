@@ -97,7 +97,8 @@ public abstract class BaseShuffleJob implements BaseShuffle {
 //                .mapPartitions(new MapToInternalMapFunc(), Encoders.bean(InternalMap.class));
 //        doShuffle0(mapDf, schema, globalConfig);
         JavaRDD<Map<String, Object>> javaRDD = dataset.toJavaRDD()
-                .coalesce(Integer.parseInt(WRITE_NUM_PARTITIONS))
+                .repartition(Integer.parseInt(WRITE_NUM_PARTITIONS))
+//                .coalesce(Integer.parseInt(WRITE_NUM_PARTITIONS))
                 .mapPartitions(new RowToMapFlatMapFunction());
         doShuffle(javaRDD, schema, globalConfig);
     }
