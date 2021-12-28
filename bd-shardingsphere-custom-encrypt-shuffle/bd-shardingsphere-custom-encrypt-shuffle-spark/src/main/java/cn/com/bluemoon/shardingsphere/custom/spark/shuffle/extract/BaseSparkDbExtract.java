@@ -28,7 +28,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
 
-    public static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "50");
+    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "80");
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
@@ -50,7 +50,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         String dbTable = getDbTableByMode(shuffleMode, config.getDatabaseType());
         props.put(JDBCOptions.JDBC_TABLE_NAME(), dbTable);
         props.put(JDBCOptions.JDBC_PARTITION_COLUMN(), JDBC_PARTITION_FIELD_ID);
-        props.put(JDBCOptions.JDBC_NUM_PARTITIONS(), parallelNum);
+        props.put(JDBCOptions.JDBC_NUM_PARTITIONS(), JDBC_NUM_PARTITIONS);
         props.put(JDBCOptions.JDBC_BATCH_FETCH_SIZE(), BATCH_SIZE);
         props.put(JDBCOptions.JDBC_LOWER_BOUND(), lowerBound);
         props.put(JDBCOptions.JDBC_UPPER_BOUND(), upperBound);

@@ -27,6 +27,10 @@ public class SparkDbExtractIWithIncField extends BaseSparkDbExtract implements I
 
     public SparkDbExtractIWithIncField(GlobalConfig config, SparkSession spark) {
         super(config, spark);
+        if (StringUtils.isNotBlank(config.getIncrTimestampColPreVal())) {
+            log.warn("启动配置指定了上一次的增量最大值，【首次】直接使用preExtractTimestamp={}", config.getIncrTimestampColPreVal());
+            preExtractTimestamp = config.getIncrTimestampColPreVal();
+        }
     }
 
     /**

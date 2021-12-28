@@ -11,15 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author Jarod.Kong
@@ -28,7 +25,7 @@ import java.util.Optional;
 @Getter
 public abstract class BaseShuffleJob implements BaseShuffle {
 
-    public static final String parallelNum = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", BaseSparkDbExtract.parallelNum);
+    public static final String WRITE_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.write.numPartitions", "50");
 
     // must static
     protected static volatile Broadcast<GlobalConfig> globalConfigBroadcast = null;
@@ -96,11 +93,17 @@ public abstract class BaseShuffleJob implements BaseShuffle {
      * 负责转换（洗数）、入库
      */
     protected void doShuffleDf(Dataset<Row> dataset, StructType schema, GlobalConfig globalConfig) {
+//        Dataset<InternalMap> mapDf = dataset.coalesce(Integer.parseInt(WRITE_NUM_PARTITIONS))
+//                .mapPartitions(new MapToInternalMapFunc(), Encoders.bean(InternalMap.class));
+//        doShuffle0(mapDf, schema, globalConfig);
         JavaRDD<Map<String, Object>> javaRDD = dataset.toJavaRDD()
-                .repartition(Integer.parseInt(parallelNum))
+                .repartition(Integer.parseInt(WRITE_NUM_PARTITIONS))
                 .mapPartitions(new RowToMapFlatMapFunction());
         doShuffle(javaRDD, schema, globalConfig);
     }
+
+    @Deprecated
+    protected abstract void doShuffle0(Dataset<InternalMap> df, StructType schema, GlobalConfig globalConfig);
 
     protected abstract void doShuffle(JavaRDD<Map<String, Object>> javaRDD, StructType schema, GlobalConfig globalConfig);
 
@@ -114,5 +117,27 @@ public abstract class BaseShuffleJob implements BaseShuffle {
         SparkConf conf = new SparkConf().setAppName(config.getJobName());
         if (!onYarn) conf.setMaster("local[*]");
         return SparkSession.builder().config(conf).getOrCreate();
+    }
+
+    static class MapToInternalMapFunc implements MapPartitionsFunction<Row, InternalMap> {
+
+        @Override
+        public Iterator<InternalMap> call(Iterator<Row> iterator) throws Exception {
+            List<InternalMap> res = new ArrayList<>();
+            while (iterator.hasNext()) {
+                InternalMap map = new InternalMap();
+                Map<String, Object> r = new HashMap<>();
+                Row row = iterator.next();
+                StructType schema = row.schema();
+                String[] fieldNames = schema.fieldNames();
+                for (String fieldName : fieldNames) {
+                    Object fieldVal = row.getAs(fieldName);
+                    r.put(fieldName, fieldVal);
+                }
+                map.setRow(r);
+                res.add(map);
+            }
+            return res.iterator();
+        }
     }
 }

@@ -44,6 +44,10 @@ public class GlobalConfig implements Serializable {
      * 增量时间字段名，用于划分时间区域
      */
     private String incrTimestampCol;
+    /**
+     * 增量时间字段上一次最大值（用于直接跳过历史的洗数数据）
+     */
+    private String incrTimestampColPreVal;
 
     /**
      * 自定义拉取数据库的查询条件，不需要 加where
