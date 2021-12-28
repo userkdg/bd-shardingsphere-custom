@@ -28,7 +28,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
 
-    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "80");
+    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "100");
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
     public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
@@ -83,7 +83,8 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         // partitionCol.getType()只能外部提供字段类型
         String dynamicPartitionField = "";
         if ("mysql".equalsIgnoreCase(databaseType)) {
-            dynamicPartitionField = String.format(" CAST(%s AS SIGNED) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+//            dynamicPartitionField = String.format(" CAST(%s AS SIGNED) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
         }
         if ("postgresql".equalsIgnoreCase(databaseType)) {
             dynamicPartitionField = String.format(" CAST(%s AS INTEGER) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
