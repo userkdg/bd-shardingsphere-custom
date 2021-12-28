@@ -32,13 +32,13 @@ public class DecryptShuffleJob extends BaseShuffleJob implements DecryptShuffle 
     @Override
     public void init() {
         super.init();
-        boolean hadEncryptRule = config.getExtractCols().stream().allMatch(f -> f.getEncryptRule() != null && f.getEncryptRule().getType() != null);
+        boolean hadEncryptRule = config.internalGetExtractCols().stream().allMatch(f -> f.getEncryptRule() != null && f.getEncryptRule().getType() != null);
         Assert.isTrue(hadEncryptRule, "必须指定明文列的加密算法信息");
     }
 
     @Override
     protected void doShuffle0(Dataset<InternalMap> df, StructType schema, GlobalConfig globalConfig) {
-        
+
     }
 
     @Override

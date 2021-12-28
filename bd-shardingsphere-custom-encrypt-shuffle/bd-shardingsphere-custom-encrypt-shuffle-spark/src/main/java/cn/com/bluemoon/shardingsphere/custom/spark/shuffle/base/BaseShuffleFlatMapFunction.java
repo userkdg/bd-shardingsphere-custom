@@ -32,7 +32,7 @@ public abstract class BaseShuffleFlatMapFunction implements FlatMapFunction<Iter
     public BaseShuffleFlatMapFunction(Broadcast<GlobalConfig> broadcast) {
         GlobalConfig config = broadcast.getValue();
         this.globalConfig = config;
-        this.extractCols = config.getExtractCols();
+        this.extractCols = config.internalGetExtractCols();
         this.primaryCols = config.getPrimaryCols();
     }
 

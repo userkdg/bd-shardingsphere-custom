@@ -60,7 +60,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
     protected String getDbTableByMode(ExtractMode shuffleMode, String databaseType) {
         // 2021/12/1 只查询相关字段
         List<String> fields = config.getPrimaryCols().stream().map(GlobalConfig.FieldInfo::getName).collect(Collectors.toList());
-        List<String> extractCols = config.getExtractCols().stream().map(GlobalConfig.FieldInfo::getName).collect(Collectors.toList());
+        List<String> extractCols = config.internalGetExtractCols().stream().map(GlobalConfig.FieldInfo::getName).collect(Collectors.toList());
         fields.addAll(extractCols);
         // 明文列对应的密文列 2021/12/1 定义行为，重跑洗数什么模式，全覆盖（全部重跑），获取明文列对应的密文列中为null的数据进行加密洗数
         final String whereSql = getSqlWhere(shuffleMode, fields, extractCols);

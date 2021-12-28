@@ -31,7 +31,7 @@ public class EncryptForeachPartitionFunction extends BaseShuffleForeachPartition
     protected void doUpdate(Iterator<Map<String, Object>> its) throws SQLException {
         List<GlobalConfig.FieldInfo> primaryCols = globalConfig.getPrimaryCols();
         try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
-            List<String> cipherCols = getCipherCols(globalConfig.getExtractCols());
+            List<String> cipherCols = getCipherCols(globalConfig.internalGetExtractCols());
             final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, cipherCols);
             // update batch
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {

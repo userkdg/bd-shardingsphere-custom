@@ -51,7 +51,7 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
         }
         broadcastValue.setPrimaryCols(partCols);
         // 明文列
-        List<GlobalConfig.FieldInfo> extractCols = broadcastValue.getExtractCols();
+        List<GlobalConfig.FieldInfo> extractCols = broadcastValue.internalGetExtractCols();
         for (GlobalConfig.FieldInfo plainCol : extractCols) {
             // 针对调用者没有指定目标类型的情况下
             if (plainCol.getType() == null) {

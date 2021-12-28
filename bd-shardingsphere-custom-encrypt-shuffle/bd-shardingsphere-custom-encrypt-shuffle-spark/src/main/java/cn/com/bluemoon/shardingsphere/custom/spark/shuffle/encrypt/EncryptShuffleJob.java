@@ -32,7 +32,7 @@ public class EncryptShuffleJob extends BaseShuffleJob implements EncryptShuffle 
     @Override
     public void init() {
         super.init();
-        boolean hadEncryptRule = config.getTargetCols().stream().allMatch(f -> f.getEncryptRule() != null && f.getEncryptRule().getType() != null);
+        boolean hadEncryptRule = config.internalGetTargetCols().stream().allMatch(f -> f.getEncryptRule() != null && f.getEncryptRule().getType() != null);
         Assert.isTrue(hadEncryptRule, "必须指定明文列的加密算法信息");
     }
 

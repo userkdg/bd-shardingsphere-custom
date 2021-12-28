@@ -53,9 +53,13 @@ public class EncryptShuffleEcOrderSysUserTest {
         log.debug("mock json example:{}", json);
         GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);
         log.debug("json to bean:{}", globalConfig);
-        this.args = new String[]{"-c " + json, tableName};
+        this.args = new String[]{"-c" + json, tableName};
     }
 
+    @Test
+    public void testGlobalConfigSwap() {
+        System.out.println(args);
+    }
 
     @SneakyThrows
     @Test

@@ -53,7 +53,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
 
     public void init() {
         log.info("start job !!");
-        if (config.getExtractCols() == null || config.getExtractCols().isEmpty()) {
+        if (config.internalGetExtractCols() == null || config.internalGetExtractCols().isEmpty()) {
             throw new RuntimeException("洗数字段不可为空");
         }
         Optional.ofNullable(beforeHandler).ifPresent(h -> h.handler(config));

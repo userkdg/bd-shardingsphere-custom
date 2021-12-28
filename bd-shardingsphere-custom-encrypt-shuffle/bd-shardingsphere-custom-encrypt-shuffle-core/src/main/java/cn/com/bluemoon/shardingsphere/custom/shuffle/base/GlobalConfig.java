@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
  *
  * @author Jarod.Kong
  */
-@Data
 public class GlobalConfig implements Serializable {
 
     public static final String MYSQL = "mysql";
@@ -112,12 +111,12 @@ public class GlobalConfig implements Serializable {
     /**
      * 基于shuffleCols入口进行定义抽取列
      */
-    public List<FieldInfo> getExtractCols() {
+    public List<FieldInfo> internalGetExtractCols() {
         Assert.isTrue(shuffleCols != null && !shuffleCols.isEmpty(), "洗数表字段不可为空");
         return shuffleCols.stream().map(Tuple2::getT1).collect(Collectors.toList());
     }
 
-    public List<FieldInfo> getTargetCols() {
+    public List<FieldInfo> internalGetTargetCols() {
         Assert.isTrue(shuffleCols != null && !shuffleCols.isEmpty(), "洗数表字段不可为空");
         return shuffleCols.stream().map(Tuple2::getT2).collect(Collectors.toList());
     }
@@ -332,5 +331,125 @@ public class GlobalConfig implements Serializable {
             result = 31 * result + (props != null ? props.hashCode() : 0);
             return result;
         }
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
+    }
+
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public void setTargetUrl(String targetUrl) {
+        this.targetUrl = targetUrl;
+    }
+
+    public String getRuleTableName() {
+        return ruleTableName;
+    }
+
+    public void setRuleTableName(String ruleTableName) {
+        this.ruleTableName = ruleTableName;
+    }
+
+    public List<FieldInfo> getPrimaryCols() {
+        return primaryCols;
+    }
+
+    public void setPrimaryCols(List<FieldInfo> primaryCols) {
+        this.primaryCols = primaryCols;
+    }
+
+    public FieldInfo getPartitionCol() {
+        return partitionCol;
+    }
+
+    public void setPartitionCol(FieldInfo partitionCol) {
+        this.partitionCol = partitionCol;
+    }
+
+    public String getIncrTimestampCol() {
+        return incrTimestampCol;
+    }
+
+    public void setIncrTimestampCol(String incrTimestampCol) {
+        this.incrTimestampCol = incrTimestampCol;
+    }
+
+    public String getIncrTimestampColPreVal() {
+        return incrTimestampColPreVal;
+    }
+
+    public void setIncrTimestampColPreVal(String incrTimestampColPreVal) {
+        this.incrTimestampColPreVal = incrTimestampColPreVal;
+    }
+
+    public String getCustomExtractWhereSql() {
+        return customExtractWhereSql;
+    }
+
+    public void setCustomExtractWhereSql(String customExtractWhereSql) {
+        this.customExtractWhereSql = customExtractWhereSql;
+    }
+
+    public boolean isOnYarn() {
+        return onYarn;
+    }
+
+    public void setOnYarn(boolean onYarn) {
+        this.onYarn = onYarn;
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
+    }
+
+    public List<Tuple2<FieldInfo>> getShuffleCols() {
+        return shuffleCols;
+    }
+
+    public void setShuffleCols(List<Tuple2<FieldInfo>> shuffleCols) {
+        this.shuffleCols = shuffleCols;
+    }
+
+    public List<Tuple3<FieldInfo>> getReShuffleCols() {
+        return reShuffleCols;
+    }
+
+    public void setReShuffleCols(List<Tuple3<FieldInfo>> reShuffleCols) {
+        this.reShuffleCols = reShuffleCols;
+    }
+
+    public ExtractMode getExtractMode() {
+        return extractMode;
+    }
+
+    public void setExtractMode(ExtractMode extractMode) {
+        this.extractMode = extractMode;
+    }
+
+    public boolean isMultiBatchUrlConfig() {
+        return multiBatchUrlConfig;
+    }
+
+    public void setMultiBatchUrlConfig(boolean multiBatchUrlConfig) {
+        this.multiBatchUrlConfig = multiBatchUrlConfig;
+    }
+
+    public ShuffleMode getShuffleMode() {
+        return shuffleMode;
+    }
+
+    public void setShuffleMode(ShuffleMode shuffleMode) {
+        this.shuffleMode = shuffleMode;
     }
 }
