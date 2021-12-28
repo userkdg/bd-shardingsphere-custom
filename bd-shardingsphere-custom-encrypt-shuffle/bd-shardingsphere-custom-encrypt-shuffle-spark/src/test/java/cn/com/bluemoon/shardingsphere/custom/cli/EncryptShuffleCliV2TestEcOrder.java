@@ -41,7 +41,7 @@
 //        }});
 //        config.setExtractMode(ExtractMode.All);
 //        config.setMultiBatchUrlConfig(true);
-//        String json = GlobalConfigSwapper.gson.toJson(config);
+//        String json = GlobalConfigSwapper.swapToJsonStr(config);
 //        log.debug("mock json example:{}", json);
 //        GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);
 //        log.debug("json to bean:{}", globalConfig);

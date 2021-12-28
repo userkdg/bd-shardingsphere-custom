@@ -1,14 +1,16 @@
 package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
 
 /**
  * @author Jarod.Kong
  */
 public class GlobalConfigSwapper {
-    public static final Gson gson = new Gson();
+    public static String swapToJsonStr(GlobalConfig globalConfig) {
+        return JSON.toJSONString(globalConfig);
+    }
 
     public static GlobalConfig swapToConfig(String configStr) {
-        return gson.fromJson(configStr, GlobalConfig.class);
+        return JSON.parseObject(configStr, GlobalConfig.class);
     }
 }

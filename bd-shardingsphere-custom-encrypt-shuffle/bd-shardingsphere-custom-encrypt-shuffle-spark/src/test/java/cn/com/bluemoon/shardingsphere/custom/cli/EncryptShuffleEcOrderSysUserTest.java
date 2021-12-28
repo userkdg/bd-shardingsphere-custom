@@ -46,10 +46,10 @@ public class EncryptShuffleEcOrderSysUserTest {
 
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
-        // 指定增量值，直接跳过小于该值的数据
+        // 鎸囧畾澧為噺鍊硷紝鐩存帴璺宠繃灏忎簬璇ュ�肩殑鏁版嵁
         config.setIncrTimestampColPreVal("2021-12-29 21:29:34.0");
         config.setMultiBatchUrlConfig(true);
-        String json = GlobalConfigSwapper.gson.toJson(config);
+        String json = GlobalConfigSwapper.swapToJsonStr(config);
         log.debug("mock json example:{}", json);
         GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);
         log.debug("json to bean:{}", globalConfig);

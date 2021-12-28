@@ -13,8 +13,7 @@ import java.util.stream.Collectors;
  *
  * @author Jarod.Kong
  */
-@Getter
-@Setter
+@Data
 public class GlobalConfig implements Serializable {
 
     public static final String MYSQL = "mysql";
@@ -209,10 +208,12 @@ public class GlobalConfig implements Serializable {
                 .add("primaryCols=" + primaryCols)
                 .add("partitionCol=" + partitionCol)
                 .add("incrTimestampCol='" + incrTimestampCol + "'")
+                .add("incrTimestampColPreVal='" + incrTimestampColPreVal + "'")
                 .add("customExtractWhereSql='" + customExtractWhereSql + "'")
                 .add("onYarn=" + onYarn)
                 .add("jobName='" + jobName + "'")
                 .add("shuffleCols=" + shuffleCols)
+                .add("reShuffleCols=" + reShuffleCols)
                 .add("extractMode=" + extractMode)
                 .add("multiBatchUrlConfig=" + multiBatchUrlConfig)
                 .add("shuffleMode=" + shuffleMode)
