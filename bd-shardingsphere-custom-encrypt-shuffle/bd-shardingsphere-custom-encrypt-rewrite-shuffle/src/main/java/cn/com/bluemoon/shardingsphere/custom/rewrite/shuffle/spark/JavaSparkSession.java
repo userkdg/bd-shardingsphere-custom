@@ -1,4 +1,4 @@
-package cn.com.bluemoon.shardingsphere.custom.spark.spark;
+package cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.spark;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;

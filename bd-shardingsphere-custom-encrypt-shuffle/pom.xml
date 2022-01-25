@@ -16,6 +16,7 @@
         <module>bd-shardingsphere-custom-encrypt-shuffle-spark</module>
         <module>bd-shardingsphere-custom-encrypt-shuffle-sdk</module>
         <module>bd-shardingsphere-custom-encrypt-shuffle-core</module>
+        <module>bd-shardingsphere-custom-encrypt-rewrite-shuffle</module>
     </modules>
 
 
