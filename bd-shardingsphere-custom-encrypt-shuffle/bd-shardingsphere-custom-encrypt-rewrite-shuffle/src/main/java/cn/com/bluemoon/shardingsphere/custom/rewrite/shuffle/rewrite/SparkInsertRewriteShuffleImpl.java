@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite;
 
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.AbstractSqlRewriteShuffle;
+import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.DbUtil;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.RewriteConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
@@ -11,8 +12,6 @@ import org.apache.spark.sql.Row;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,15 +33,8 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
             String fileType = Optional.ofNullable(getRewriteConfig().getFileType()).orElse("text");
             Dataset<Row> df = spark.read().format(fileType).load(getRewriteConfig().getFromFilePath());
             df.show(10, false);
-            df.mapPartitions((MapPartitionsFunction<Row, String>) itr -> {
-                List<String> sqls = new LinkedList<>();
-                while (itr.hasNext()) {
-                    Row row = itr.next();
-                    String sql = row.getString(0);
-                    sqls.add(sql);
-                }
-                return sqls.iterator();
-            }, Encoders.STRING()).foreachPartition(new ShuffleForeachPartitionFun(getRewriteConfigByBroadcast()));
+            df.mapPartitions(new RewriteShuffleMapPartitionFun(), Encoders.STRING())
+                    .foreachPartition(new RewriteShuffleForeachPartitionFun(getRewriteConfigByBroadcast()));
         }
     }
 
@@ -51,31 +43,43 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
         return "insert";
     }
 
-    public static class ShuffleForeachPartitionFun implements ForeachPartitionFunction<String> {
+    public static class RewriteShuffleMapPartitionFun implements MapPartitionsFunction<Row, String> {
+
+        @Override
+        public Iterator<String> call(Iterator<Row> itr) throws Exception {
+            List<String> sqls = new LinkedList<>();
+            while (itr.hasNext()) {
+                Row row = itr.next();
+                String sql = row.getString(0);
+                sqls.add(sql);
+            }
+            return sqls.iterator();
+        }
+    }
+
+    // TODO: 2022/1/31 后续结合各种sqlType进行抽象：统一入口，各自的业务处理，统一创建连接和执行和销毁等
+    public static class RewriteShuffleForeachPartitionFun implements ForeachPartitionFunction<String> {
         private final RewriteConfiguration conf;
 
-        public ShuffleForeachPartitionFun(RewriteConfiguration conf) {
+        public RewriteShuffleForeachPartitionFun(RewriteConfiguration conf) {
             this.conf = conf;
         }
 
         @Override
         public void call(Iterator<String> itr) throws Exception {
-            insertBatch(itr);
-        }
-
-        // TODO: 2022/1/25 插入id 重复问题
-        private void insertBatch(Iterator<String> its) {
-            try (Connection conn = DriverManager.getConnection(conf.getExecutorUrl())) {
-                try (Statement ps = conn.createStatement()) {
-                    while (its.hasNext()) {
-                        final String sql = its.next();
-                        log.debug("add insert sql:{}", sql);
-                        ps.addBatch(sql);
-                    }
-                    ps.executeBatch();
+            Connection conn = DriverManager.getConnection(conf.getExecutorUrl());
+            int[] batchRes = DbUtil.sqlExecuteBatch(conn, itr, true);
+            int i = 0;
+            final boolean rewriteBatchedStats = batchRes.length == 1;
+            while (itr.hasNext()) {
+                String sql = itr.next();
+                // 1flag 表示一次一批执行（rewriteBatchedStatements=true）,2flag表示每条执行结果为1
+                if (rewriteBatchedStats || batchRes[i] == 1) {
+                    log.info("sql=>{}执行成功, batchResult:{}", sql, batchRes[i]);
+                } else {
+                    log.error("sql=>{}执行失败，batchResult:{}", sql, batchRes[i]);
                 }
-            } catch (SQLException e) {
-                log.error("批量写入异常", e);
+                i++;
             }
         }
     }

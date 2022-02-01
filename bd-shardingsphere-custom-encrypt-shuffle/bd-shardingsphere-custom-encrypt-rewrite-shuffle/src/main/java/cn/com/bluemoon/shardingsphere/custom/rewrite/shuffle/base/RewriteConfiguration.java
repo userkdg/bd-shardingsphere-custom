@@ -38,5 +38,15 @@ public class RewriteConfiguration extends BaseSparkConfig implements Serializabl
      */
     private String formatType;
 
+    /**
+     * 数据库schema名称
+     */
+    private String dbName;
+
+    /**
+     * 重置数据库状态（非幂等性的shuffle，插入sql到数据库）
+     */
+    private Boolean resetDbStatus;
+
 
 }
