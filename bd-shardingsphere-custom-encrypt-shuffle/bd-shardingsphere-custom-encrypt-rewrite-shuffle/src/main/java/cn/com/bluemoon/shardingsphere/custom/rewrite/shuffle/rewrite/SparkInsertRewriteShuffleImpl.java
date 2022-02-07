@@ -9,6 +9,7 @@ import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.Rew
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteSqlHandler;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.function.FilterFunction;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
@@ -47,6 +48,7 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
             df.show(10, false);
             df
                     .mapPartitions(new RewriteShuffleMapPartitionFun(getRewriteConfigByBroadcast(), rewriteSqlHandlers), Encoders.STRING())
+                    .filter((FilterFunction<String>) StringUtils::isNotBlank)
                     .mapPartitions(new RewriteShuffleExecuteMapPartitionFun(getRewriteConfigByBroadcast()), Encoders.bean(SqlExecutorResult.class))
                     .filter((FilterFunction<SqlExecutorResult>) result -> result != null && !result.getSuccess())
                     .write()
