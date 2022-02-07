@@ -4,6 +4,7 @@ import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.AbstractSqlRew
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.DbUtil;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.RewriteConfiguration;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.SqlExecutorResult;
+import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteEcOrderInsertSqlTablesHandler;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteSqlEcOrderInsertSqlSchemaHandler;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteSqlHandler;
 import lombok.Data;
@@ -31,6 +32,7 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
 
     static {
         rewriteSqlHandlers.add(new RewriteSqlEcOrderInsertSqlSchemaHandler());
+        rewriteSqlHandlers.add(new RewriteEcOrderInsertSqlTablesHandler());
     }
 
     public SparkInsertRewriteShuffleImpl(RewriteConfiguration rewriteConfig) {
@@ -43,7 +45,7 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
             String fileType = Optional.ofNullable(getRewriteConfig().getFileType()).orElse("text");
             Dataset<Row> df = spark.read().format(fileType).load(getRewriteConfig().getFromFilePath());
             df.show(10, false);
-            df.repartition(30)
+            df
                     .mapPartitions(new RewriteShuffleMapPartitionFun(getRewriteConfigByBroadcast(), rewriteSqlHandlers), Encoders.STRING())
                     .mapPartitions(new RewriteShuffleExecuteMapPartitionFun(getRewriteConfigByBroadcast()), Encoders.bean(SqlExecutorResult.class))
                     .filter((FilterFunction<SqlExecutorResult>) result -> result != null && !result.getSuccess())
@@ -79,7 +81,9 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
                         sourceSql = handler.handler(config, sourceSql);
                         log.debug("sourceSql-handler={}->{}", sql, sourceSql);
                     }
-                    sqls.add(sourceSql);
+                    if (sourceSql != null) {
+                        sqls.add(sourceSql);
+                    }
                 } else {
                     sqls.add(sql);
                 }

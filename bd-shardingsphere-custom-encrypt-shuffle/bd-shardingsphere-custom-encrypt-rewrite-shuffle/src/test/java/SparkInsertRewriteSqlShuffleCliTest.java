@@ -24,7 +24,7 @@ public class SparkInsertRewriteSqlShuffleCliTest {
         conf.setFormatType("jdbc");
 //        conf.setMaster("local[*]");
         conf.setMaster("yarn");
-        conf.setAppName("bd-spark-kms-rewrite-shuffle");
+        conf.setAppName("bd-spark-kms-rewrite-shuffle-v1");
         System.out.println(conf);
         jsonStr = RewriteConfigurationSwapper.swapToJsonStr(conf);
         RewriteConfiguration decryptConf = RewriteConfigurationSwapper.swapToConfig(jsonStr);

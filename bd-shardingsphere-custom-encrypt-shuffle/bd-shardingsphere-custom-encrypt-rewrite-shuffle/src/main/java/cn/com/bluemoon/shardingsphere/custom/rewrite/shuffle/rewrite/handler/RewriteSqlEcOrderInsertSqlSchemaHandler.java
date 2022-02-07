@@ -9,8 +9,10 @@ public class RewriteSqlEcOrderInsertSqlSchemaHandler implements RewriteSqlHandle
 
     @Override
     public String handler(RewriteConfiguration config, String sourceSql) {
-        if (config.getDbName() != null && config.getDbName().startsWith("ec_order")) {
-            return sourceSql.replace("`ec_order`.", "");
+        if (sourceSql != null) {
+            if (config.getDbName() != null && config.getDbName().startsWith("ec_order")) {
+                return sourceSql.replace("`ec_order`.", "");
+            }
         }
         return sourceSql;
     }
