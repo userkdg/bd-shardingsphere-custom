@@ -39,6 +39,10 @@ public abstract class AbstractSqlRewriteShuffle implements BaseRewriteShuffle {
         SparkConf sparkConf = new SparkConf();
         sparkConf.setMaster(customSparkConfig.getMaster());
         sparkConf.setAppName(customSparkConfig.getAppName());
+        if (Boolean.TRUE.equals(customSparkConfig.getSupportHive())){
+            log.info("开启支持spark sql操作hive数据");
+            sparkConf.set("spark.sql.catalogImplementation", "hive");
+        }
         if (customSparkConfig.getOtherParams() != null) {
             customSparkConfig.getOtherParams().forEach((k, v) -> {
                 log.info("设置spark配置{}：{}", k, v);
@@ -64,7 +68,7 @@ public abstract class AbstractSqlRewriteShuffle implements BaseRewriteShuffle {
             log.info("进行重置数据库初始化状态");
             String databaseName = rewriteConfig.getDbName();
             Assert.isTrue(databaseName != null, "请指定数据库名");
-            List<String> truncateTbSqls = DbUtil.getSchemaTruncateTableSql(getJdbcConnection(), databaseName, true);
+            List<String> truncateTbSqls = DbUtil.getTruncateTableSql(getJdbcConnection(), databaseName, true);
             DbUtil.sqlExecuteBatch(getJdbcConnection(), truncateTbSqls, true);
             log.info("truncate scheme ={} all table data", databaseName);
         }

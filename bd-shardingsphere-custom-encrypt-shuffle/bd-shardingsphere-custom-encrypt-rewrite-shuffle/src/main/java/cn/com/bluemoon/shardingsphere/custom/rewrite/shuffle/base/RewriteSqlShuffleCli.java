@@ -33,7 +33,9 @@ public abstract class RewriteSqlShuffleCli implements CliRunner {
         log.info("=====================启动参数:{}", configStr);
         RewriteConfiguration config = RewriteConfigurationSwapper.swapToConfig(configStr);
         BaseRewriteShuffle shuffle = getCustomShuffleJob(config);
+        shuffle.beforeShuffle();
         shuffle.shuffle();
+        shuffle.afterShuffle();
     }
 
     protected abstract BaseRewriteShuffle getCustomShuffleJob(RewriteConfiguration config);

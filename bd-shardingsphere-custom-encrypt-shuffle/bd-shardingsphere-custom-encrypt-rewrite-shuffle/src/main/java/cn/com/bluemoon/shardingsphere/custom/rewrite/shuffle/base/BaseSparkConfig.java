@@ -14,6 +14,7 @@ public class BaseSparkConfig implements Serializable {
 
     private String master;
     private String appName;
+    private Boolean supportHive;
 
     private Map<String,String> otherParams;
 
