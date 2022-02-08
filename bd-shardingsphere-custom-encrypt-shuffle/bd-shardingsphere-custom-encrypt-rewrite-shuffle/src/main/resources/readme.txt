@@ -10,6 +10,16 @@ PATH变量
 
 重启电脑
 
+# pom 依赖
+```
+<dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-hive_${scala.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>provided</scope>
+</dependency>
+```
+
 # 远程hdfs和hive环境 （远程hadoop、cdh环境配置文件）
 core-site.xml、hdfs-site.xml、hive-site.xml
 # 日志打印：
