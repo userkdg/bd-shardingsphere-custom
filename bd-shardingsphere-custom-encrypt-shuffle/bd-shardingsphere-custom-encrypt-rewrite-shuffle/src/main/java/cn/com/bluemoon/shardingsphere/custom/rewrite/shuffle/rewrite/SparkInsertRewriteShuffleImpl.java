@@ -7,7 +7,6 @@ import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base.SqlExecutorRes
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteEcOrderInsertSqlTablesHandler;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteSqlEcOrderInsertSqlSchemaHandler;
 import cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.rewrite.handler.RewriteSqlHandler;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.function.FilterFunction;
@@ -18,7 +17,6 @@ import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 
-import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.*;
@@ -42,19 +40,25 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
 
     @Override
     public void shuffle() {
-        if (getRewriteConfig().getFromFilePath() != null) {
+        Dataset<Row> df;
+        if (getRewriteConfig().getFromSql() != null && !getRewriteConfig().getFromSql().isEmpty()) {
+            List<String> rdd = new ArrayList<>(getRewriteConfig().getFromSql());
+            df = spark.createDataFrame(rdd, String.class);
+        } else if (getRewriteConfig().getFromFilePath() != null) {
             String fileType = Optional.ofNullable(getRewriteConfig().getFileType()).orElse("text");
-            Dataset<Row> df = spark.read().format(fileType).load(getRewriteConfig().getFromFilePath());
-            df.show(10, false);
-            df
-                    .mapPartitions(new RewriteShuffleMapPartitionFun(getRewriteConfigByBroadcast(), rewriteSqlHandlers), Encoders.STRING())
-                    .filter((FilterFunction<String>) StringUtils::isNotBlank)
-                    .mapPartitions(new RewriteShuffleExecuteMapPartitionFun(getRewriteConfigByBroadcast()), Encoders.bean(SqlExecutorResult.class))
-                    .filter((FilterFunction<SqlExecutorResult>) result -> result != null && !result.getSuccess())
-                    .write()
-                    .mode(SaveMode.Overwrite)
-                    .saveAsTable("dap_data_secure.shuffle_insert_rewrite_sql_result");
+            df = spark.read().format(fileType).load(getRewriteConfig().getFromFilePath());
+        } else {
+            throw new RuntimeException("请指定源数据属性");
         }
+        df.show(10, false);
+        Dataset<SqlExecutorResult> finalDF = df
+                .mapPartitions(new RewriteShuffleMapPartitionFun(getRewriteConfigByBroadcast(), rewriteSqlHandlers), Encoders.STRING())
+                .filter((FilterFunction<String>) StringUtils::isNotBlank)
+                .mapPartitions(new RewriteShuffleExecuteMapPartitionFun(getRewriteConfigByBroadcast()), Encoders.bean(SqlExecutorResult.class))
+                .filter((FilterFunction<SqlExecutorResult>) result -> result != null && !result.getSuccess());
+        finalDF.write()
+                .mode(SaveMode.Overwrite)
+                .saveAsTable("dap_data_secure.shuffle_insert_rewrite_sql_result");
     }
 
     @Override
@@ -110,8 +114,9 @@ public class SparkInsertRewriteShuffleImpl extends AbstractSqlRewriteShuffle {
     }
 
 
-    public static class RewriteShuffleExecuteMapPartitionFun implements MapPartitionsFunction<String, SqlExecutorResult>{
+    public static class RewriteShuffleExecuteMapPartitionFun implements MapPartitionsFunction<String, SqlExecutorResult> {
         private final RewriteConfiguration conf;
+
         public RewriteShuffleExecuteMapPartitionFun(RewriteConfiguration conf) {
             this.conf = conf;
         }

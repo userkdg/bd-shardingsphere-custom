@@ -2,6 +2,7 @@ package cn.com.bluemoon.shardingsphere.custom.rewrite.shuffle.base;
 
 import lombok.*;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -23,6 +24,7 @@ public class RewriteConfiguration extends BaseSparkConfig implements Serializabl
 
     /**
      * 指定sql分析
+     * fromFilePath选其一
      */
     private Collection<String> fromSql;
 
@@ -30,6 +32,7 @@ public class RewriteConfiguration extends BaseSparkConfig implements Serializabl
      * execution url
      * 携带账号密码
      */
+    @NotNull
     private String executorUrl;
 
     /**
@@ -41,6 +44,7 @@ public class RewriteConfiguration extends BaseSparkConfig implements Serializabl
     /**
      * 数据库schema名称
      */
+    @NotNull
     private String dbName;
 
     /**
