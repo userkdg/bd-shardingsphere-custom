@@ -16,7 +16,7 @@ public class SparkSelectRewriteSqlShuffleCliTest {
     public void setUp() throws Exception {
         RewriteConfiguration conf = new RewriteConfiguration();
         conf.setFileType("text");
-//        conf.setFromFilePath("D:\\jarodkong\\pri-project\\shardingsphere\\bd-shardingsphere-custom\\bd-shardingsphere-custom-encrypt-shuffle\\bd-shardingsphere-custom-encrypt-rewrite-shuffle\\src\\test\\resources\\data\\forward.4554-no-repeat.sql");
+//        conf.setFromFilePath("file:///D:\\jarodkong\\pri-project\\shardingsphere\\bd-shardingsphere-custom\\bd-shardingsphere-custom-encrypt-shuffle\\bd-shardingsphere-custom-encrypt-rewrite-shuffle\\src\\test\\resources\\data\\select\\query_log01-for-test.log");
         conf.setFromFilePath("/home/data_tool/bd-spark-kms-ec_order-sqls-check/sqls-select/*.log");
         conf.setExecutorUrl("jdbc:mysql://192.168.243.34:33306/ec_order_sandbox?user=root&password=root123456&useUnicode=true&characterEncoding=utf8&useSSL=false");
         conf.setDbName("ec_order_sandbox");
