@@ -12,6 +12,7 @@
         <module>bd-shardingsphere-custom-cluster-mode-repository</module>
         <module>bd-shardingsphere-custom-db-protocol-oracle</module>
         <module>bd-shardingsphere-custom-encrypt-shuffle</module>
+        <module>bd-kms-center</module>
     </modules>
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
