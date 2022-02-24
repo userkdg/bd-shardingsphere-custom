@@ -2,13 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>bd-shardingsphere-custom</artifactId>
-        <groupId>cn.com.bluemoon</groupId>
-        <version>5.0.0-SNAPSHOT</version>
-    </parent>
+    <!--    <parent>-->
+    <!--        <artifactId>bd-shardingsphere-custom</artifactId>-->
+    <!--        <groupId>cn.com.bluemoon</groupId>-->
+    <!--        <version>5.0.0-SNAPSHOT</version>-->
+    <!--    </parent>-->
     <modelVersion>4.0.0</modelVersion>
-
+    <groupId>cn.com.bluemoon</groupId>
+    <version>1.0.0-SNAPSHOT</version>
     <artifactId>bd-kms-center</artifactId>
     <packaging>pom</packaging>
     <modules>
@@ -16,5 +17,86 @@
         <module>bd-kms-encrypt-aglo</module>
     </modules>
 
+    <properties>
+        <slf4j.version>1.7.7</slf4j.version>
+        <logback.version>1.2.0</logback.version>
+        <java.version>1.8</java.version>
+    </properties>
 
+    <!-- 设置maven仓库地址 -->
+    <repositories>
+        <repository>
+            <id>bm-nexus</id>
+            <name>nexus</name>
+            <url>http://192.168.236.7:8081/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>Nexus Releases</name>
+            <url>http://192.168.236.7:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Nexus Snapshots</name>
+            <url>http://192.168.236.7:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cn.com.bluemoon</groupId>
+                <artifactId>bd-kms-encrypt-aglo</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>3.7.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.20</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <testSource>${java.version}</testSource>
+                    <testTarget>${java.version}</testTarget>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
