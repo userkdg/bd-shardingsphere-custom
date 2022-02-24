@@ -27,35 +27,57 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public final class SM3EncryptAlgorithmTest {
-
+    
     static {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
     }
-
+    
     private EncryptAlgorithm encryptAlgorithm;
-
+    
     @Before
     public void setUp() {
         Properties props = new Properties();
-        encryptAlgorithm = ShardingSphereAlgorithmFactory
-                .createAlgorithm(new ShardingSphereAlgorithmConfiguration("SM3", props),
-                        EncryptAlgorithm.class);
+        props.setProperty("sm3-salt", "test1234");
+        encryptAlgorithm = ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration("SM3", props), EncryptAlgorithm.class);
     }
-
+    
     @Test
     public void assertEncrypt() {
-        assertThat(encryptAlgorithm.encrypt("18813975053"), is("bcfc95a20b0988c38c27b7d02fa52e0fc402bd8419ea4a6f7d355cc63bf75c70"));
-        assertThat(encryptAlgorithm.encrypt(null), is(nullValue()));
-
-        assertThat(encryptAlgorithm.decrypt("bcfc95a20b0988c38c27b7d02fa52e0fc402bd8419ea4a6f7d355cc63bf75c70"), is("bcfc95a20b0988c38c27b7d02fa52e0fc402bd8419ea4a6f7d355cc63bf75c70"));
-        assertThat(encryptAlgorithm.decrypt("188****5053"), is("188****5053"));
-        assertThat(encryptAlgorithm.decrypt(null), is(nullValue()));
+        assertThat(encryptAlgorithm.encrypt("test1234"), is("9587fe084ee4b53fe629c6ae5519ee4d55def8ed4badc8588d3be9b99bd84aba"));
     }
-
-
+    
+    @Test
+    public void assertEncryptWithoutSalt() {
+        Properties props = new Properties();
+        encryptAlgorithm.setProps(props);
+        encryptAlgorithm.init();
+        assertThat(encryptAlgorithm.encrypt("test1234"), is("ab847c6f2f6a53be88808c5221bd6ee0762e1af1def82b21d2061599b6cf5c79"));
+    }
+    
+    @Test
+    public void assertEncryptWithNullPlaintext() {
+        assertNull(encryptAlgorithm.encrypt(null));
+    }
+    
+    @Test
+    public void assertDecrypt() {
+        assertThat(encryptAlgorithm.decrypt("ab847c6f2f6a53be88808c5221bd6ee0762e1af1def82b21d2061599b6cf5c79").toString(), is("ab847c6f2f6a53be88808c5221bd6ee0762e1af1def82b21d2061599b6cf5c79"));
+    }
+    
+    @Test
+    public void assertDecryptWithoutSalt() {
+        Properties props = new Properties();
+        encryptAlgorithm.setProps(props);
+        encryptAlgorithm.init();
+        assertThat(encryptAlgorithm.decrypt("ab847c6f2f6a53be88808c5221bd6ee0762e1af1def82b21d2061599b6cf5c79").toString(), is("ab847c6f2f6a53be88808c5221bd6ee0762e1af1def82b21d2061599b6cf5c79"));
+    }
+    
+    @Test
+    public void assertDecryptWithNullCiphertext() {
+        assertNull(encryptAlgorithm.decrypt(null));
+    }
 }
