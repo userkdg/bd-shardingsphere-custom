@@ -22,8 +22,12 @@ public class SparkSubmitDecryptShuffleMain {
         if (args.length > 1) {
             jobName = args[1];
         }
+        String jobEnv = "test";
+        if (args.length > 2){
+            jobEnv = args[2];
+        }
         final String sshUser = "data_tool";
-        final String sshHost = "192.168.235.12";
+        final String sshHost =  jobEnv.equalsIgnoreCase("prod") ? "192.168.39.11": "192.168.235.12";
         final String password = "tool@aeb56c";
         int sshPort = 22;
         final String command = String.format("sh /home/data_tool/bd-spark/bd-spark-encrypt-shuffle/runSparkDecryptShuffleJob.sh '-c %s' '%s'",

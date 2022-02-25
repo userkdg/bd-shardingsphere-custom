@@ -32,7 +32,9 @@ public class EncryptForeachPartitionFunction extends BaseShuffleForeachPartition
         List<GlobalConfig.FieldInfo> primaryCols = globalConfig.getPrimaryCols();
         try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
             List<String> cipherCols = getCipherCols(globalConfig.internalGetExtractCols());
-            final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, cipherCols);
+            // TODO: 2022/2/25 sql增加onUpdateCurrentTimestamps
+            List<String> onUpdateCurrentTimestamps = globalConfig.getOnUpdateCurrentTimestamps();
+            final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, cipherCols, onUpdateCurrentTimestamps);
             // update batch
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
                 int batchSize = Integer.parseInt(BATCH_SIZE);
@@ -45,6 +47,11 @@ public class EncryptForeachPartitionFunction extends BaseShuffleForeachPartition
                         String cipherName = cipherCols.get(i - 1);
                         ps.setString(i, Objects.toString(row.get(cipherName), null));
                     }
+                    // TODO: 2022/2/25 SQL ? 原值回填 验证obj+timestamp是否可以赋值
+                    for (String onUpdateCurrentTimestamp : onUpdateCurrentTimestamps) {
+                        ps.setObject(++cipherSize, row.get(onUpdateCurrentTimestamp), JDBCType.TIMESTAMP);
+                    }
+                    // where 条件值 与 updateDynamicSql ? 顺序对应
                     for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
                         ps.setObject(++cipherSize, row.get(primaryCol.getName()), JDBCType.valueOf(primaryCol.getType()));
                     }

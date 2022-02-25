@@ -65,11 +65,20 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
         return broadcastValue;
     }
 
-
-    protected String updateDynamicSqlBuilder(List<GlobalConfig.FieldInfo> primaryCols, List<String> cipherCols) {
+    /**
+     *
+     * @param primaryCols 主键条件
+     * @param encryptCols 加密/解密字段值
+     * @param onUpdateCurrentTimestamps timestamp自动更新字段
+     * @return sql
+     */
+    protected String updateDynamicSqlBuilder(List<GlobalConfig.FieldInfo> primaryCols, List<String> encryptCols,
+                                             List<String> onUpdateCurrentTimestamps) {
         StringBuilder sb = new StringBuilder();
         sb.append("update ").append(globalConfig.getRuleTableName()).append(" set ");
-        String setFields = cipherCols.stream().map(f -> f + "=?")
+        List<String> allField = new ArrayList<>(encryptCols);
+        allField.addAll(onUpdateCurrentTimestamps);
+        String setFields = allField.stream().map(f -> f + "=?")
                 .collect(Collectors.joining(", "));
         sb.append(setFields).append(" where ");
         List<String> whereSql = new ArrayList<>(primaryCols.size());

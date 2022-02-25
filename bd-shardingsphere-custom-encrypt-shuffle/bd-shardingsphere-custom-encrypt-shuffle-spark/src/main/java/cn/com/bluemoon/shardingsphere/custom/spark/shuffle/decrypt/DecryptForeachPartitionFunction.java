@@ -32,7 +32,7 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
         List<GlobalConfig.FieldInfo> primaryCols = globalConfig.getPrimaryCols();
         try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
             List<String> plainBakCols = getPlainBakCols(globalConfig.internalGetExtractCols());
-            final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, plainBakCols);
+            final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, plainBakCols, globalConfig.getOnUpdateCurrentTimestamps());
             // update batch
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
                 int batchSize = Integer.parseInt(BATCH_SIZE);

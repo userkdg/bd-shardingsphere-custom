@@ -53,6 +53,10 @@ public class SparkSubmitEncryptEcOmsOrderExample {
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("last_update_time");
         config.setMultiBatchUrlConfig(true);
+        // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
+        config.setOnUpdateCurrentTimestamps(new ArrayList<String>(){{
+            add("last_update_time");
+        }});
         String json = GlobalConfigSwapper.swapToJsonStr(config);
         log.debug("mock json example:{}", json);
         GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);

@@ -64,7 +64,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         fields.addAll(extractCols);
         // 明文列对应的密文列 2021/12/1 定义行为，重跑洗数什么模式，全覆盖（全部重跑），获取明文列对应的密文列中为null的数据进行加密洗数
         final String whereSql = getSqlWhere(shuffleMode, fields, extractCols);
-        final String fieldProjectionsStr = getSqlProjectionsStr(fields, extractCols, databaseType);
+        final String fieldProjectionsStr = getSqlProjectionsStr(fields, databaseType);
         final String tableAlias = String.format("%s AS %s", config.getRuleTableName(), SPARK_JDBC_DBTABLE_ALIAS);
         final String finalTableTmpName = config.getRuleTableName() + "_tmp";
         String finalDbTableSql = "(" +
@@ -77,7 +77,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         return finalDbTableSql;
     }
 
-    private String getSqlProjectionsStr(List<String> fields, List<String> extractCols, String databaseType) {
+    private String getSqlProjectionsStr(List<String> fields, String databaseType) {
         // 分区字段
         GlobalConfig.FieldInfo partitionCol = config.getPartitionColOpt().orElse(config.getPrimaryCols().get(0));
         // partitionCol.getType()只能外部提供字段类型
@@ -93,6 +93,10 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         fieldProjections.add(dynamicPartitionField);
         List<String> actualFields = fields.stream().map(this::wrappedFieldAlias).collect(Collectors.toList());
         fieldProjections.addAll(actualFields);
+        // TODO: 2022/2/25 增加onUpdateCurrentTimestamps字段查询，用于自增数据回填
+        for (String onUpdateCurrentTimestampField : config.getOnUpdateCurrentTimestamps()) {
+            fieldProjections.add(wrappedFieldAlias(onUpdateCurrentTimestampField));
+        }
         return String.join(", ", fieldProjections);
     }
 

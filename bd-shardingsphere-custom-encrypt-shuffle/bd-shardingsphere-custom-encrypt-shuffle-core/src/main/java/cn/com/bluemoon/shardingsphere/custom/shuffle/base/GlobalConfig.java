@@ -43,6 +43,10 @@ public class GlobalConfig implements Serializable {
      */
     private String incrTimestampCol;
     /**
+     * 提供定义刷库sql避免timestamp字段自动更新，导致同步作业获取增量数据不对问题
+     */
+    private List<String> onUpdateCurrentTimestamps;
+    /**
      * 增量时间字段上一次最大值（用于直接跳过历史的洗数数据）
      */
     private String incrTimestampColPreVal;
@@ -451,5 +455,15 @@ public class GlobalConfig implements Serializable {
 
     public void setShuffleMode(ShuffleMode shuffleMode) {
         this.shuffleMode = shuffleMode;
+    }
+
+    public List<String> getOnUpdateCurrentTimestamps() {
+        return Optional.ofNullable(onUpdateCurrentTimestamps)
+                .map(l -> l.stream().distinct().collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+    }
+
+    public void setOnUpdateCurrentTimestamps(List<String> onUpdateCurrentTimestamps) {
+        this.onUpdateCurrentTimestamps = onUpdateCurrentTimestamps;
     }
 }
