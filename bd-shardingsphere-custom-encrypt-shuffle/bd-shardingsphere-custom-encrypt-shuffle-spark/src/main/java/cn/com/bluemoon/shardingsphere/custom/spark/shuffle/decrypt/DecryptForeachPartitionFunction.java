@@ -33,6 +33,8 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
         try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
             List<String> plainBakCols = getPlainBakCols(globalConfig.internalGetExtractCols());
             final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, plainBakCols, globalConfig.getOnUpdateCurrentTimestamps());
+            // 2022/2/25 sql增加onUpdateCurrentTimestamps
+            List<String> onUpdateCurrentTimestamps = globalConfig.getOnUpdateCurrentTimestamps();
             // update batch
             try (PreparedStatement ps = conn.prepareStatement(updateDynamicSql)) {
                 int batchSize = Integer.parseInt(BATCH_SIZE);
@@ -44,6 +46,10 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
                     for (int i = 1; i <= cipherSize; i++) {
                         String plainBakCol = plainBakCols.get(i - 1);
                         ps.setString(i, Objects.toString(row.get(plainBakCol), null));
+                    }
+                    // 2022/2/25 SQL ? 原值回填 验证obj+timestamp是否可以赋值
+                    for (String onUpdateCurrentTimestamp : onUpdateCurrentTimestamps) {
+                        ps.setObject(++cipherSize, row.get(onUpdateCurrentTimestamp), JDBCType.TIMESTAMP);
                     }
                     for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
                         ps.setObject(++cipherSize, row.get(primaryCol.getName()), JDBCType.valueOf(primaryCol.getType()));

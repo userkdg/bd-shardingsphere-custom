@@ -29,11 +29,14 @@ public abstract class BaseShuffleFlatMapFunction implements FlatMapFunction<Iter
 
     protected final List<GlobalConfig.FieldInfo> primaryCols;
 
+    protected final List<String> onUpdateCurrentTimestamps;
+
     public BaseShuffleFlatMapFunction(Broadcast<GlobalConfig> broadcast) {
         GlobalConfig config = broadcast.getValue();
         this.globalConfig = config;
         this.extractCols = config.internalGetExtractCols();
         this.primaryCols = config.getPrimaryCols();
+        this.onUpdateCurrentTimestamps = config.getOnUpdateCurrentTimestamps();
     }
 
     protected EncryptAlgorithm createEncryptAlgorithm(String type, Properties props) {

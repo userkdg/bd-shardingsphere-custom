@@ -33,8 +33,12 @@ public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
                 GlobalConfig.EncryptRule encryptRule = targetCol.getEncryptRule();
                 String type = encryptRule.getType();
                 EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
-                String cipherText = encryptAlgorithm.encrypt(val);
+                Object cipherText = encryptAlgorithm.encrypt(val);
                 r.put(targetCol.getName(), cipherText);
+            }
+            // 2022/2/25 sql增加onUpdateCurrentTimestamps
+            for (String onUpdateCurrentTimestamp : onUpdateCurrentTimestamps) {
+                r.put(onUpdateCurrentTimestamp, row.get(onUpdateCurrentTimestamp));
             }
             for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
                 r.put(primaryCol.getName(), row.get(primaryCol.getName()));

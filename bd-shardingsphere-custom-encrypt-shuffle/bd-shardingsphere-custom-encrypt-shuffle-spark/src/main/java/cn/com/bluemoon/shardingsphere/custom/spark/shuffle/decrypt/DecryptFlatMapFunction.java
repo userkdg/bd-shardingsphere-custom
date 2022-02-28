@@ -36,6 +36,10 @@ public class DecryptFlatMapFunction extends BaseShuffleFlatMapFunction {
                 String targetColName = globalConfig.getTargetColOrElse(extractColName, wrapPlainBakFieldName(extractColName));
                 r.put(targetColName, plainText);
             }
+            // 2022/2/25 sql增加onUpdateCurrentTimestamps
+            for (String onUpdateCurrentTimestamp : onUpdateCurrentTimestamps) {
+                r.put(onUpdateCurrentTimestamp, row.get(onUpdateCurrentTimestamp));
+            }
             for (GlobalConfig.FieldInfo primaryCol : primaryCols) {
                 r.put(primaryCol.getName(), row.get(primaryCol.getName()));
             }

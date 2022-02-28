@@ -93,7 +93,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         fieldProjections.add(dynamicPartitionField);
         List<String> actualFields = fields.stream().map(this::wrappedFieldAlias).collect(Collectors.toList());
         fieldProjections.addAll(actualFields);
-        // TODO: 2022/2/25 增加onUpdateCurrentTimestamps字段查询，用于自增数据回填
+        // 2022/2/25 增加onUpdateCurrentTimestamps字段查询，用于自增数据回填
         for (String onUpdateCurrentTimestampField : config.getOnUpdateCurrentTimestamps()) {
             fieldProjections.add(wrappedFieldAlias(onUpdateCurrentTimestampField));
         }

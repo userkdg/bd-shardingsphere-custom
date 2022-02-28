@@ -27,11 +27,11 @@
             <artifactId>bd-shardingsphere-custom-encrypt-shuffle-core</artifactId>
             <version>5.0.0-SNAPSHOT</version>
         </dependency>
-
+        
         <dependency>
             <groupId>cn.com.bluemoon</groupId>
-            <artifactId>bd-shardingsphere-custom-encrypt-algo</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <artifactId>bd-kms-encrypt-aglo</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <!--        java.lang.NoClassDefFoundError: com/fasterxml/jackson/module/scala/ScalaObjectMapper-->
