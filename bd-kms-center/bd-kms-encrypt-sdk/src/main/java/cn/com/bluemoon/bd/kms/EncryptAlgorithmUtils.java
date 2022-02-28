@@ -63,9 +63,14 @@ public final class EncryptAlgorithmUtils {
      */
     public static String encrypt(String sys, Object plainValue) {
         if (SYS_SECURE_CACHE.containsKey(sys)) {
-            return SYS_SECURE_CACHE.get(sys).encrypt(plainValue);
+            try {
+                return SYS_SECURE_CACHE.get(sys).encrypt(plainValue);
+            } catch (Exception e) {
+                // nothing back source value
+                return Objects.toString(plainValue, null);
+            }
         }
-        return Objects.toString(plainValue);
+        return Objects.toString(plainValue, null);
     }
 
     /**
@@ -77,7 +82,12 @@ public final class EncryptAlgorithmUtils {
      */
     public static Object decrypt(String sys, String cipherValue) {
         if (SYS_SECURE_CACHE.containsKey(sys)) {
-            return SYS_SECURE_CACHE.get(sys).decrypt(cipherValue);
+            try {
+                return SYS_SECURE_CACHE.get(sys).decrypt(cipherValue);
+            } catch (Exception e) {
+                // nothing back source value
+                return cipherValue;
+            }
         }
         return cipherValue;
     }
