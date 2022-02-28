@@ -17,7 +17,7 @@
 
 package org.apache.shardingsphere.encrypt.algorithm;
 
-import com.google.common.base.Preconditions;
+import org.apache.shardingsphere.encrypt.Preconditions;
 import lombok.Setter;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;

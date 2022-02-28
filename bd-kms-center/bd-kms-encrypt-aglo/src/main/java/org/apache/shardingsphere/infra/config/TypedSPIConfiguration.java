@@ -17,9 +17,8 @@
 
 package org.apache.shardingsphere.infra.config;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import lombok.Getter;
+import org.apache.shardingsphere.encrypt.Preconditions;
 
 import java.util.Properties;
 
@@ -28,14 +27,18 @@ import java.util.Properties;
  */
 @Getter
 public abstract class TypedSPIConfiguration {
-    
+
     private final String type;
-    
+
     private final Properties props;
-    
+
     protected TypedSPIConfiguration(final String type, final Properties props) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(type), "Type is required.");
+        Preconditions.checkArgument(!isNullOrEmpty(type), "Type is required.");
         this.type = type;
         this.props = null == props ? new Properties() : props;
+    }
+
+    private boolean isNullOrEmpty(String string) {
+        return string == null || string.isEmpty();
     }
 }
