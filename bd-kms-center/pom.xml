@@ -15,6 +15,7 @@
     <modules>
         <module>bd-kms-encrypt-sdk</module>
         <module>bd-kms-encrypt-aglo</module>
+        <module>bd-kms-encrypt-bigdata</module>
     </modules>
 
     <properties>
