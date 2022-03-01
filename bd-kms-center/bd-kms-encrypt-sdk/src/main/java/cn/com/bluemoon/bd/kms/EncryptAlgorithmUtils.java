@@ -50,6 +50,13 @@ public final class EncryptAlgorithmUtils {
     private static final Map<String, EncryptAlgorithm<Object, String>> SYS_SECURE_CACHE = new ConcurrentHashMap<>(16);
 
     static {
+        doInit();
+    }
+
+    /**
+     * 提供外部初始化基础算法
+     */
+    public static void doInit() {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
         initEncryptAlgorithmProps();
     }
@@ -95,11 +102,11 @@ public final class EncryptAlgorithmUtils {
     // private
     private static void initEncryptAlgorithmProps() {
         Properties props;
-        try (InputStream inputStream = EncryptAlgorithmUtils.class.getClassLoader().getResourceAsStream("config.properties")) {
+        try (InputStream inputStream = EncryptAlgorithmUtils.class.getClassLoader().getResourceAsStream("kms-config.properties")) {
             props = new Properties();
             props.load(inputStream);
         } catch (IOException e) {
-            throw new ShardingSphereException("请配置KMS平台获取秘钥信息, config.properties", e);
+            throw new ShardingSphereException("请配置KMS平台获取秘钥信息, kms-config.properties", e);
         }
         if ("remote".equalsIgnoreCase(props.getProperty(KMS_CENTER_MODE_KEY))) {
             String kmsUrlStr = props.getProperty(KMS_CENTER_URL_PROP_KEY);
@@ -147,7 +154,8 @@ public final class EncryptAlgorithmUtils {
     private static EncryptAlgorithm<Object, String> createAlgorithm(final Algorithm algorithm) {
         Properties props = new Properties();
         props.putAll(JSON.parseObject(algorithm.getKey(), Map.class));
-        return ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration(algorithm.getType().toUpperCase(), props), EncryptAlgorithm.class);
+//        return ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration(algorithm.getType().toUpperCase(), props), EncryptAlgorithm.class);
+        return ShardingSphereAlgorithmFactory.doCreateStaticAlgorithm(new ShardingSphereAlgorithmConfiguration(algorithm.getType().toUpperCase(), props));
     }
 
     @Data
