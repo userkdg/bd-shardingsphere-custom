@@ -2,15 +2,15 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.DbTablePartitionUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig.MYSQL;
@@ -42,6 +42,36 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
     protected BaseSparkDbExtract(GlobalConfig config, SparkSession spark) {
         this.config = config;
         this.spark = spark;
+    }
+
+    @Override
+    public Dataset<Row> extract() {
+        return loadCustomDbTableJdbcDF();
+    }
+
+    /**
+     * 统一加载自定义表数据
+     */
+    protected Dataset<Row> loadCustomDbTableJdbcDF() {
+        // 优先表是否有自定义分区，否则，走统一配置的分区列，spark默认数值分区eg:0-1000, 1000-2000...
+        String[] customPartitionAllPredicateArr = DbTablePartitionUtils.getPartitions(config.getDbName(), config.getRuleTableName());
+        if (customPartitionAllPredicateArr != null && customPartitionAllPredicateArr.length > 0) {
+            ExtractMode shuffleMode = config.getExtractMode();
+            Map<String, String> sourceJdbcBasicProps = getSourceJdbcBasicProps();
+            Properties props = new Properties();
+            sourceJdbcBasicProps.forEach((k, v) -> {
+                log.info("set {}:{}", k, v);
+                props.setProperty(k, v);
+            });
+            String dbTableByMode = getDbTableByMode(shuffleMode, config.getDatabaseType());
+            log.warn("表{}，开启自定义分区全量抽取方式：总分区数：{}，分区如下：", config.getRuleTableName(), customPartitionAllPredicateArr.length);
+            for (String part : customPartitionAllPredicateArr) {
+                log.info("{}", part);
+            }
+            return spark.read().jdbc(config.getConvertSourceUrl(), dbTableByMode, customPartitionAllPredicateArr, props);
+        }
+        log.info("加载表{}spark默认配置字段{}分区", config.getRuleTableName(), config.getPartitionCol());
+        return spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
     }
 
     protected Map<String, String> getCustomDbTableJdbcReadProps() {
@@ -77,18 +107,38 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         return finalDbTableSql;
     }
 
+    protected String wrappedFieldAlias(String field) {
+        return String.format("%s.%s", SPARK_JDBC_DBTABLE_ALIAS, field);
+    }
+
+    protected abstract String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> extractCols);
+
+    protected Map<String, String> getSourceJdbcBasicProps() {
+        Map<String, String> props = new HashMap<>(16);
+        if (MYSQL.equalsIgnoreCase(config.getDatabaseType())) {
+            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.cj.jdbc.Driver");
+        } else if (POSTGRESQL.equalsIgnoreCase(config.getDatabaseType())) {
+            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "org.postgresql.Driver");
+        } else {
+            log.warn("数据库类型{}未能初始化Driver，请增加driver和初始化！", config.getDatabaseType());
+        }
+        props.put(JDBCOptions.JDBC_URL(), config.getConvertSourceUrl());
+        return props;
+    }
+
+    /**
+     * <pre>
+     *  1. dynamicPartitionField = String.format(" CAST(%s AS SIGNED) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+     *  2. dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+     *  3. dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
+     *  基于mod/cast来支持分区，实际上spark默认分区容易倾斜，建议结合实际表分区字段进行定义
+     * </pre>
+     * {@link DbTablePartitionUtils}
+     */
     private String getSqlProjectionsStr(List<String> fields, String databaseType) {
         // 分区字段
         GlobalConfig.FieldInfo partitionCol = config.getPartitionColOpt().orElse(config.getPrimaryCols().get(0));
-        // partitionCol.getType()只能外部提供字段类型
-        String dynamicPartitionField = "";
-        if ("mysql".equalsIgnoreCase(databaseType)) {
-//            dynamicPartitionField = String.format(" CAST(%s AS SIGNED) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
-            dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
-        }
-        if ("postgresql".equalsIgnoreCase(databaseType)) {
-            dynamicPartitionField = String.format(" CAST(%s AS INTEGER) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
-        }
+        String dynamicPartitionField = getDynamicPartitionFieldStr(databaseType, partitionCol);
         List<String> fieldProjections = new LinkedList<>();
         fieldProjections.add(dynamicPartitionField);
         List<String> actualFields = fields.stream().map(this::wrappedFieldAlias).collect(Collectors.toList());
@@ -100,9 +150,31 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         return String.join(", ", fieldProjections);
     }
 
-    protected String wrappedFieldAlias(String field) {
-        return String.format("%s.%s", SPARK_JDBC_DBTABLE_ALIAS, field);
+    /**
+     * 获取表分区加工字段值，统一as为{@see JDBC_PARTITION_FIELD_ID}
+     */
+    private String getDynamicPartitionFieldStr(String databaseType, GlobalConfig.FieldInfo partitionCol) {
+        // partitionCol.getType()只能外部提供字段类型
+        String dynamicPartitionField = "";
+        String[] customPartition = DbTablePartitionUtils.getPartitions(config.getDbName(), config.getRuleTableName());
+        boolean hadCustomPartition = customPartition != null && customPartition.length > 0;
+        if ("mysql".equalsIgnoreCase(databaseType)) {
+            if (hadCustomPartition) {
+                dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            } else {
+                dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
+            }
+        }
+        if ("postgresql".equalsIgnoreCase(databaseType)) {
+            if (hadCustomPartition) {
+                dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            } else {
+                dynamicPartitionField = String.format(" CAST(%s AS INTEGER) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+            }
+        }
+        return dynamicPartitionField;
     }
+
 
     private String getSqlWhere(ExtractMode shuffleMode, List<String> fields, List<String> extractCols) {
         if (shuffleMode == null) {
@@ -111,16 +183,4 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
         return getCustomWhereSql(shuffleMode, fields, extractCols);
     }
 
-    protected abstract String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> extractCols);
-
-    protected Map<String, String> getSourceJdbcBasicProps() {
-        Map<String, String> props = new HashMap<>(16);
-        if (MYSQL.equalsIgnoreCase(config.getDatabaseType())) {
-            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.cj.jdbc.Driver");
-        } else if (POSTGRESQL.equalsIgnoreCase(config.getDatabaseType())) {
-            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "org.postgresql.Driver");
-        }
-        props.put(JDBCOptions.JDBC_URL(), config.getConvertSourceUrl());
-        return props;
-    }
 }

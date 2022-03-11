@@ -1,31 +1,29 @@
-package cn.com.bluemoon.encrypt.shuffle.cli;
+package cn.com.bluemoon.shardingsphere.custom.cli;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfigSwapper;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.SparkEncryptShuffleCli;
 import lombok.extern.slf4j.Slf4j;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 /**
  * @author Jarod.Kong
  */
 @Slf4j
-public class SparkSubmitEncryptEcOmsOrderExample {
-    public static final String PROXY_BATCH_ID = "proxy_batch_id";
-    private static final List<String> partitions = new ArrayList<>();
+public class SparkSubmitEncryptEcOmsOrderExtractWithIncrFieldExampleTest {
     private static String exampleArg = "";
     private static String jobName = "";
 
     static {
-        init();
 
         GlobalConfig config = new GlobalConfig();
         final String dbName = "ec_order";
         final String tableName = "ec_oms_order";
         config.setSourceUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setTargetUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
+        config.setDbName(dbName);
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
                 new GlobalConfig.FieldInfo("order_code")
@@ -39,24 +37,25 @@ public class SparkSubmitEncryptEcOmsOrderExample {
         sourceProps.put("aes-key-value", "wlf1d5mmal2xsttr");
         List<GlobalConfig.Tuple2<GlobalConfig.FieldInfo>> shuffleCols = new LinkedList<>();
         GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple1 = new GlobalConfig.Tuple2<>();
-        tuple1.setT1(new GlobalConfig.FieldInfo("address", new GlobalConfig.EncryptRule("AES", sourceProps)));
-        tuple1.setT2(new GlobalConfig.FieldInfo("address_cipher"));
+        tuple1.setT1(new GlobalConfig.FieldInfo("address"));
+        tuple1.setT2(new GlobalConfig.FieldInfo("address_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
         shuffleCols.add(tuple1);
 
         GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple2 = new GlobalConfig.Tuple2<>();
-        tuple2.setT1(new GlobalConfig.FieldInfo("receiver_mobile", new GlobalConfig.EncryptRule("AES", sourceProps)));
-        tuple2.setT2(new GlobalConfig.FieldInfo("receiver_mobile_cipher"));
+        tuple2.setT1(new GlobalConfig.FieldInfo("receiver_mobile"));
+        tuple2.setT2(new GlobalConfig.FieldInfo("receiver_mobile_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
         shuffleCols.add(tuple2);
 
         GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple3 = new GlobalConfig.Tuple2<>();
-        tuple3.setT1(new GlobalConfig.FieldInfo("receiver_name", new GlobalConfig.EncryptRule("AES", sourceProps)));
-        tuple3.setT2(new GlobalConfig.FieldInfo("receiver_name_cipher"));
+        tuple3.setT1(new GlobalConfig.FieldInfo("receiver_name"));
+        tuple3.setT2(new GlobalConfig.FieldInfo("receiver_name_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
         shuffleCols.add(tuple3);
 
         config.setShuffleCols(shuffleCols);
 
-        config.setExtractMode(ExtractMode.All);
-//        config.setIncrTimestampCol("last_update_time");
+        config.setExtractMode(ExtractMode.WithIncField);
+        config.setIncrTimestampCol("last_update_time");
+        config.setIncrTimestampColPreVal("2022-03-11 00:00:00");
         config.setMultiBatchUrlConfig(true);
         // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
         config.setOnUpdateCurrentTimestamps(new ArrayList<String>() {{
@@ -71,26 +70,7 @@ public class SparkSubmitEncryptEcOmsOrderExample {
     }
 
     public static void main(String[] args) {
-        SparkSubmitEncryptShuffleMain.main(new String[]{exampleArg, jobName});
+        SparkEncryptShuffleCli.main(new String[]{"-c "+exampleArg, jobName});
     }
 
-    public static void init() {
-        BigDecimal r = new BigDecimal("2020220000000000000000000");
-        BigDecimal p = new BigDecimal("1020190000000000000000000");
-        BigDecimal sub = r.subtract(p);
-        BigDecimal per = sub.divide(new BigDecimal("1000"));
-        System.out.println(per.toPlainString());
-        System.out.println(per.longValue());
-        BigDecimal pre = p, curr = p;
-        while (((curr = pre.add(per))).compareTo(r) < 0) {
-            String part = String.format("%s < %s and %s >=%s", PROXY_BATCH_ID, curr.toPlainString(), PROXY_BATCH_ID, pre);
-            System.out.println(part);
-            partitions.add(part);
-            pre = curr;
-        }
-        String part = String.format("%s >=%s", PROXY_BATCH_ID, pre);
-        System.out.println(part);
-        partitions.add(part);
-        System.out.println(partitions.size());
-    }
 }

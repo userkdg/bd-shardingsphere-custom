@@ -37,11 +37,6 @@ public class EncryptShuffleJob extends BaseShuffleJob implements EncryptShuffle 
     }
 
     @Override
-    protected void doShuffle0(Dataset<InternalMap> df, StructType schema, GlobalConfig globalConfig) {
-
-    }
-
-    @Override
     protected void doShuffle(JavaRDD<Map<String, Object>> javaRDD, StructType schema, GlobalConfig globalConfig) {
         javaRDD
                 .mapPartitions(new EncryptFlatMapFunction(globalConfigBroadcast))

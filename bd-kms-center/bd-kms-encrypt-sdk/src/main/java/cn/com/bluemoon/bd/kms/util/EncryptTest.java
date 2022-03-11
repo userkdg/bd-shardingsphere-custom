@@ -8,12 +8,14 @@ import cn.com.bluemoon.bd.kms.EncryptAlgorithmUtils;
 public class EncryptTest {
 
     public static void main(String[] args) {
-        Object plain = "test";
+        Object plain = "15025498458";
         String sys = "ec";
         String cipher = EncryptAlgorithmUtils.encrypt(sys, plain);
         Object plain2 = EncryptAlgorithmUtils.decrypt(sys, cipher);
         System.out.println("sys: " + sys);
         System.out.println(plain + " encrypt :" + cipher);
         System.out.println(cipher + " decrypt :" + plain2);
+        assert cipher.equals("keBdCJ2mZ+uDbM+XW3L4zA==");
+        assert plain2.equals(plain);
     }
 }

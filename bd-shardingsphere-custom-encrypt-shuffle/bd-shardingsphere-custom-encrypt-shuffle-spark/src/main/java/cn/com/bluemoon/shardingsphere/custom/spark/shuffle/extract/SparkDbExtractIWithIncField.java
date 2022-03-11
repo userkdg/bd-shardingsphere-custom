@@ -103,7 +103,7 @@ public class SparkDbExtractIWithIncField extends BaseSparkDbExtract implements I
         curMaxIncrTimestamp = Optional.ofNullable(topOne.getAs(config.getIncrTimestampCol())).map(String::valueOf).orElse(DateUtil.now());
         log.info("当前洗数阶段增量字段最大值为{}", curMaxIncrTimestamp);
         // 调整方案 普通模式跑一次，若是增量时间类型的就跑多次，直至没有新数据为止
-        Dataset<Row> nextDf = spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
+        Dataset<Row> nextDf = loadCustomDbTableJdbcDF();
         nextDfWithCache = nextDf.cache();
         incrExtractSize = nextDfWithCache.count();
         if (incrExtractSize > 0) {

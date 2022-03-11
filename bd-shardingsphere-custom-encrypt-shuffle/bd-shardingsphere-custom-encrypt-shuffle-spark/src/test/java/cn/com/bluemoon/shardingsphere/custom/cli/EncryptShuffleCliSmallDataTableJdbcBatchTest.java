@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.cli;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.InternalDbUtil;
 import org.junit.Test;
 
 import java.sql.*;
@@ -64,7 +65,7 @@ public class EncryptShuffleCliSmallDataTableJdbcBatchTest {
     }
 
     private String convertJdbcUrl(String s) {
-        return config.convertJdbcUrl(s, false);
+        return InternalDbUtil.convertJdbcUrl(s, false);
     }
 
 

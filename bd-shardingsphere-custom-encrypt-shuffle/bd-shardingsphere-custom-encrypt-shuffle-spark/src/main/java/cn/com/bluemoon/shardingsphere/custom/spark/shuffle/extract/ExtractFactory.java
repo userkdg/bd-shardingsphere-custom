@@ -15,7 +15,7 @@ public class ExtractFactory {
      * 默认为全量抽取
      */
     public static SparkDbExtract createDbExtract(GlobalConfig config, SparkSession spark) {
-        // FIXME: 2021/12/18 可以优化为SPI+ExtractTypeString 动态增加抽取方式
+        // 2021/12/18 可以优化为SPI+ExtractTypeString 动态增加抽取方式
         if (ExtractMode.WithIncField.equals(config.getExtractMode())) {
             return new SparkDbExtractIWithIncField(config, spark);
         } else if (ExtractMode.OtherCustom.equals(config.getExtractMode())) {

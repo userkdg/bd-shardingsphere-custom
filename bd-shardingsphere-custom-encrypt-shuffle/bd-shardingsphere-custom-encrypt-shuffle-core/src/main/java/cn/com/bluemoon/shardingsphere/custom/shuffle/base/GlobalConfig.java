@@ -19,13 +19,25 @@ public class GlobalConfig implements Serializable {
     public static final String POSTGRESQL = "postgresql";
     /**
      * jdbc:mysql://192.168.234.xx:3306/xxx?user=xxx&password=xxxx
+     * 必填
      */
     private String sourceUrl;
     /**
      * jdbc:mysql://192.168.234.xx:3306/xxx?user=xxx&password=xxxx
+     * 必填
      */
     private String targetUrl;
 
+    /**
+     * 表所属库名
+     * 必填
+     */
+    private String dbName;
+
+    /**
+     * 刷数表
+     * 必填
+     */
     private String ruleTableName;
     /**
      * 支持单主键、多主键
@@ -35,36 +47,42 @@ public class GlobalConfig implements Serializable {
 
     /**
      * 分区字段信息
+     * spark dbTable最终会把分区字段 as 为 proxy_batch_id
      */
     private FieldInfo partitionCol;
 
     /**
      * 增量时间字段名，用于划分时间区域
+     * 结合具体表增量情况填写，非必填
      */
     private String incrTimestampCol;
     /**
      * 提供定义刷库sql避免timestamp字段自动更新，导致同步作业获取增量数据不对问题
+     * 结合具体表增量情况填写，非必填
      */
     private List<String> onUpdateCurrentTimestamps;
     /**
      * 增量时间字段上一次最大值（用于直接跳过历史的洗数数据）
+     * 结合具体表增量情况填写，非必填
      */
     private String incrTimestampColPreVal;
 
     /**
      * 自定义拉取数据库的查询条件，不需要 加where
      * eg: 1=1 and 1=1 ...
+     * 结合具体表抽取情况填写，非必填
      */
     private String customExtractWhereSql;
     /**
      * 是否提交到yarn资源上
+     * 必填，或默认
      */
     private boolean onYarn = true;
     /**
      * 洗数作业名称
+     * 必填，或默认
      */
     private String jobName = "bd-spark-kms-shuffle-job";
-
 
     /**
      * 动态定义抽取字段、洗数到哪个字段及其规则
@@ -82,6 +100,7 @@ public class GlobalConfig implements Serializable {
      *          type: aes
      *          props: aes-key-value: xxx
      * </pre>
+     * </p>必填
      */
     private List<Tuple2<FieldInfo>> shuffleCols = new LinkedList<>();
 
@@ -92,6 +111,7 @@ public class GlobalConfig implements Serializable {
 
     /**
      * 定义洗数模式
+     * </p>必填
      */
     private ExtractMode extractMode;
     /**
@@ -161,29 +181,11 @@ public class GlobalConfig implements Serializable {
     }
 
     public String getConvertSourceUrl() {
-        return convertJdbcUrl(sourceUrl, multiBatchUrlConfig);
+        return InternalDbUtil.convertJdbcUrl(sourceUrl, multiBatchUrlConfig);
     }
 
     public String getConvertTargetUrl() {
-        return convertJdbcUrl(targetUrl, multiBatchUrlConfig);
-    }
-
-    public String convertJdbcUrl(String targetUrl, boolean multiBatchConfig) {
-        if (targetUrl != null) {
-            String url = targetUrl;
-            if (!url.contains("useUnicode")) url += "&useUnicode=true";
-            if (!url.contains("characterEncoding")) url += "&characterEncoding=utf8";
-            if (multiBatchConfig) {
-                if (!url.contains("rewriteBatchedStatements")) url += "&rewriteBatchedStatements=true";
-                if (!url.contains("allowMultiQueries")) url += "&allowMultiQueries=true";
-            }
-            if (!url.contains("useSSL")) url += "&useSSL=false";
-            if (!url.contains("serverTimezone")) url += "&serverTimezone=Asia/Shanghai";
-            if (!url.contains("character_set_server")) url += "&character_set_server=utf8mb4";
-            if (!url.contains("connectionCollation")) url += "&connectionCollation=utf8mb4_bin";
-            return url;
-        }
-        return null;
+        return InternalDbUtil.convertJdbcUrl(targetUrl, multiBatchUrlConfig);
     }
 
     public String getDatabaseType() {
@@ -207,10 +209,12 @@ public class GlobalConfig implements Serializable {
         return new StringJoiner(", ", GlobalConfig.class.getSimpleName() + "[", "]")
                 .add("sourceUrl='" + sourceUrl + "'")
                 .add("targetUrl='" + targetUrl + "'")
+                .add("dbName='" + dbName + "'")
                 .add("ruleTableName='" + ruleTableName + "'")
                 .add("primaryCols=" + primaryCols)
                 .add("partitionCol=" + partitionCol)
                 .add("incrTimestampCol='" + incrTimestampCol + "'")
+                .add("onUpdateCurrentTimestamps=" + onUpdateCurrentTimestamps)
                 .add("incrTimestampColPreVal='" + incrTimestampColPreVal + "'")
                 .add("customExtractWhereSql='" + customExtractWhereSql + "'")
                 .add("onYarn=" + onYarn)
@@ -223,130 +227,16 @@ public class GlobalConfig implements Serializable {
                 .toString();
     }
 
-    @Getter
-    public enum ShuffleMode {
-        ENCRYPT(1, "_cipher", "明->密"),
-        DECRYPT(2, "_plain", "密->明"),
-        RE_ENCRYPT(3, "", "重加密：密->明->密");
-
-        private final int code;
-        private final String suffix, desc;
-
-        ShuffleMode(int code, String suffix, String desc) {
-            this.code = code;
-            this.suffix = suffix;
-            this.desc = desc;
-        }
+    public String getDbName() {
+        return dbName;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Tuple2<T> implements Serializable {
-        private T t1;
-        private T t2;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Tuple3<T> extends Tuple2<T> {
-        private T t3;
-    }
-
-    @Setter
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @ToString
-    public static class FieldInfo implements Serializable {
-        private String name;
-        // 入参不为空，则已入参为准，若为空则以spark读取的schema类型为准
-        private Integer type;
-        /**
-         * 表字段加密规则
-         */
-        private EncryptRule encryptRule;
-
-        public FieldInfo(String name) {
-            this.name = name;
-        }
-
-        public FieldInfo(String name, Integer type) {
-            this.name = name;
-            this.type = type;
-        }
-
-        public FieldInfo(String name, EncryptRule encryptRule) {
-            this.name = name;
-            this.encryptRule = encryptRule;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            FieldInfo fieldInfo = (FieldInfo) o;
-
-            if (!Objects.equals(name, fieldInfo.name)) return false;
-            if (!Objects.equals(type, fieldInfo.type)) return false;
-            return Objects.equals(encryptRule, fieldInfo.encryptRule);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = name != null ? name.hashCode() : 0;
-            result = 31 * result + (type != null ? type.hashCode() : 0);
-            result = 31 * result + (encryptRule != null ? encryptRule.hashCode() : 0);
-            return result;
-        }
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    @ToString
-    public static class EncryptRule implements Serializable {
-        /**
-         * 类型：AES/ MD5
-         */
-        private final String type;
-        /**
-         * aes-key-value='xx'
-         */
-        private final Properties props;
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            EncryptRule that = (EncryptRule) o;
-
-            if (!Objects.equals(type, that.type)) return false;
-            return Objects.equals(props, that.props);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = type != null ? type.hashCode() : 0;
-            result = 31 * result + (props != null ? props.hashCode() : 0);
-            return result;
-        }
-    }
-
-    public String getSourceUrl() {
-        return sourceUrl;
+    public void setDbName(String dbName) {
+        this.dbName = dbName;
     }
 
     public void setSourceUrl(String sourceUrl) {
         this.sourceUrl = sourceUrl;
-    }
-
-    public String getTargetUrl() {
-        return targetUrl;
     }
 
     public void setTargetUrl(String targetUrl) {
@@ -465,5 +355,119 @@ public class GlobalConfig implements Serializable {
 
     public void setOnUpdateCurrentTimestamps(List<String> onUpdateCurrentTimestamps) {
         this.onUpdateCurrentTimestamps = onUpdateCurrentTimestamps;
+    }
+
+    @Getter
+    public enum ShuffleMode {
+        ENCRYPT(1, "_cipher", "明->密"),
+        DECRYPT(2, "_plain", "密->明"),
+        RE_ENCRYPT(3, "", "重加密：密->明->密");
+
+        private final int code;
+        private final String suffix, desc;
+
+        ShuffleMode(int code, String suffix, String desc) {
+            this.code = code;
+            this.suffix = suffix;
+            this.desc = desc;
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Tuple2<T> implements Serializable {
+        private T t1;
+        private T t2;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Tuple3<T> extends Tuple2<T> {
+        private T t3;
+    }
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class FieldInfo implements Serializable {
+        private String name;
+        // 入参不为空，则已入参为准，若为空则以spark读取的schema类型为准
+        private Integer type;
+        /**
+         * 表字段加密规则
+         */
+        private EncryptRule encryptRule;
+
+        public FieldInfo(String name) {
+            this.name = name;
+        }
+
+        public FieldInfo(String name, Integer type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        public FieldInfo(String name, EncryptRule encryptRule) {
+            this.name = name;
+            this.encryptRule = encryptRule;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            FieldInfo fieldInfo = (FieldInfo) o;
+
+            if (!Objects.equals(name, fieldInfo.name)) return false;
+            if (!Objects.equals(type, fieldInfo.type)) return false;
+            return Objects.equals(encryptRule, fieldInfo.encryptRule);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + (type != null ? type.hashCode() : 0);
+            result = 31 * result + (encryptRule != null ? encryptRule.hashCode() : 0);
+            return result;
+        }
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    @ToString
+    public static class EncryptRule implements Serializable {
+        /**
+         * 类型：AES/ MD5
+         */
+        private final String type;
+        /**
+         * aes-key-value='xx'
+         */
+        private final Properties props;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            EncryptRule that = (EncryptRule) o;
+
+            if (!Objects.equals(type, that.type)) return false;
+            return Objects.equals(props, that.props);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = type != null ? type.hashCode() : 0;
+            result = 31 * result + (props != null ? props.hashCode() : 0);
+            return result;
+        }
     }
 }
