@@ -23,6 +23,7 @@ public class SparkSubmitEncryptEcOmsOrderExtractAllExampleTest {
         config.setSourceUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setTargetUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setDbName(dbName);
+        config.setDbType(GlobalConfig.MYSQL);
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(
                 new GlobalConfig.FieldInfo("order_code")

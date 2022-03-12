@@ -31,6 +31,7 @@ public class ReEncryptShuffleEcOrderSysUserTest {
         GlobalConfig config = new GlobalConfig();
         final String dbName = "ec_order";
         final String tableName = "sys_user";
+        config.setDbType(GlobalConfig.MYSQL);
         config.setSourceUrl(String.format("jdbc:mysql://192.168.234.8:4401/%s?user=sharding&password=HGbZYrqlpr25", dbName));
         config.setTargetUrl(String.format("jdbc:mysql://192.168.234.8:4401/%s?user=sharding&password=HGbZYrqlpr25", dbName));
         config.setRuleTableName(tableName);

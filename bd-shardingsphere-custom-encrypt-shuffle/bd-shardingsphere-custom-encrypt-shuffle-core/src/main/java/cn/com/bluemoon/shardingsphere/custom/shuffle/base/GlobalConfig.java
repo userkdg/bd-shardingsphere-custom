@@ -35,6 +35,14 @@ public class GlobalConfig implements Serializable {
     private String dbName;
 
     /**
+     * 数据库类型
+     * {@link GlobalConfig#POSTGRESQL}
+     * {@link GlobalConfig#MYSQL}
+     * 必填
+     */
+    private String dbType;
+
+    /**
      * 刷数表
      * 必填
      */
@@ -180,30 +188,6 @@ public class GlobalConfig implements Serializable {
         return Optional.ofNullable(partitionCol);
     }
 
-    public String getConvertSourceUrl() {
-        return InternalDbUtil.convertJdbcUrl(sourceUrl, multiBatchUrlConfig);
-    }
-
-    public String getConvertTargetUrl() {
-        return InternalDbUtil.convertJdbcUrl(targetUrl, multiBatchUrlConfig);
-    }
-
-    public String getDatabaseType() {
-        if (sourceUrl != null) {
-            return getDatabaseType(sourceUrl);
-        }
-        if (targetUrl != null) {
-            return getDatabaseType(targetUrl);
-        }
-        return null;
-    }
-
-    private String getDatabaseType(String sourceUrl) {
-        if (sourceUrl.contains("jdbc:mysql")) return MYSQL;
-        if (sourceUrl.contains("jdbc:postgresql")) return POSTGRESQL;
-        throw new RuntimeException("不支持数据库类型");
-    }
-
     @Override
     public String toString() {
         return new StringJoiner(", ", GlobalConfig.class.getSimpleName() + "[", "]")
@@ -233,14 +217,6 @@ public class GlobalConfig implements Serializable {
 
     public void setDbName(String dbName) {
         this.dbName = dbName;
-    }
-
-    public void setSourceUrl(String sourceUrl) {
-        this.sourceUrl = sourceUrl;
-    }
-
-    public void setTargetUrl(String targetUrl) {
-        this.targetUrl = targetUrl;
     }
 
     public String getRuleTableName() {
@@ -355,6 +331,30 @@ public class GlobalConfig implements Serializable {
 
     public void setOnUpdateCurrentTimestamps(List<String> onUpdateCurrentTimestamps) {
         this.onUpdateCurrentTimestamps = onUpdateCurrentTimestamps;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
+    }
+
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public void setTargetUrl(String targetUrl) {
+        this.targetUrl = targetUrl;
+    }
+
+    public String getDbType() {
+        return dbType;
+    }
+
+    public void setDbType(String dbType) {
+        this.dbType = dbType;
     }
 
     @Getter

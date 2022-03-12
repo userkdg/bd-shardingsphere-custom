@@ -1,7 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
-import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Assert;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +98,11 @@ public class SparkDbExtractIWithIncField extends BaseSparkDbExtract implements I
         long incrExtractSize = 0;
         // 先查询出top1的增量字段值，再进行增量条件查询
         log.info("开始读取增量最大值");
-        Dataset<Row> maxIncrTimestampDf = spark.read().format("jdbc").options(getSourceJdbcMaxIncrTimestampProps()).load();
+        Map<String, String> maxIncrTimestampProps = getSourceJdbcMaxIncrTimestampProps();
+        maxIncrTimestampProps.forEach((k,v)->{
+            log.info("set {}:{}", k, v);
+        });
+        Dataset<Row> maxIncrTimestampDf = spark.read().format("jdbc").options(maxIncrTimestampProps).load();
         Row topOne = maxIncrTimestampDf.select(config.getIncrTimestampCol()).first();
         curMaxIncrTimestamp = Optional.ofNullable(topOne.getAs(config.getIncrTimestampCol())).map(String::valueOf).orElse(DateUtil.now());
         log.info("当前洗数阶段增量字段最大值为{}", curMaxIncrTimestamp);

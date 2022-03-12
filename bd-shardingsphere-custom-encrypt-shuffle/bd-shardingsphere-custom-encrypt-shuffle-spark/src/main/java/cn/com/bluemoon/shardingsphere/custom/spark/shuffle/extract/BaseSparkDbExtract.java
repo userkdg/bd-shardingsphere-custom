@@ -2,6 +2,7 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.InternalDbUtil;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.DbTablePartitionUtils;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +29,11 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
 
-    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "100");
+    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "2000");
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
-    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
+
+    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "100000000");
 
     @Setter
     protected GlobalConfig config;
@@ -63,21 +65,31 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
                 log.info("set {}:{}", k, v);
                 props.setProperty(k, v);
             });
-            String dbTableByMode = getDbTableByMode(shuffleMode, config.getDatabaseType());
+            String dbTableByMode = getDbTableByMode(shuffleMode, config.getDbType());
             log.warn("表{}，开启自定义分区全量抽取方式：总分区数：{}，分区如下：", config.getRuleTableName(), customPartitionAllPredicateArr.length);
             for (String part : customPartitionAllPredicateArr) {
                 log.info("{}", part);
             }
-            return spark.read().jdbc(config.getConvertSourceUrl(), dbTableByMode, customPartitionAllPredicateArr, props);
+            return spark.read().jdbc(getConvertSourceUrl(), dbTableByMode, customPartitionAllPredicateArr, props);
         }
         log.info("加载表{}spark默认配置字段{}分区", config.getRuleTableName(), config.getPartitionCol());
         return spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
     }
 
+
+    public String getConvertSourceUrl() {
+        return InternalDbUtil.convertJdbcUrl(config.getSourceUrl(), config.isMultiBatchUrlConfig());
+    }
+
+    public String getConvertTargetUrl() {
+        return InternalDbUtil.convertJdbcUrl(config.getTargetUrl(), config.isMultiBatchUrlConfig());
+    }
+
+
     protected Map<String, String> getCustomDbTableJdbcReadProps() {
         Map<String, String> props = getSourceJdbcBasicProps();
         ExtractMode shuffleMode = config.getExtractMode();
-        String dbTable = getDbTableByMode(shuffleMode, config.getDatabaseType());
+        String dbTable = getDbTableByMode(shuffleMode, config.getDbType());
         props.put(JDBCOptions.JDBC_TABLE_NAME(), dbTable);
         props.put(JDBCOptions.JDBC_PARTITION_COLUMN(), JDBC_PARTITION_FIELD_ID);
         props.put(JDBCOptions.JDBC_NUM_PARTITIONS(), JDBC_NUM_PARTITIONS);
@@ -115,14 +127,14 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     protected Map<String, String> getSourceJdbcBasicProps() {
         Map<String, String> props = new HashMap<>(16);
-        if (MYSQL.equalsIgnoreCase(config.getDatabaseType())) {
+        if (MYSQL.equalsIgnoreCase(config.getDbType())) {
             props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.cj.jdbc.Driver");
-        } else if (POSTGRESQL.equalsIgnoreCase(config.getDatabaseType())) {
+        } else if (POSTGRESQL.equalsIgnoreCase(config.getDbType())) {
             props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "org.postgresql.Driver");
         } else {
-            log.warn("数据库类型{}未能初始化Driver，请增加driver和初始化！", config.getDatabaseType());
+            log.warn("数据库类型{}未能初始化Driver，请增加driver和初始化！", config.getDbType());
         }
-        props.put(JDBCOptions.JDBC_URL(), config.getConvertSourceUrl());
+        props.put(JDBCOptions.JDBC_URL(), getConvertSourceUrl());
         return props;
     }
 

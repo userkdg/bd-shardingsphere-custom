@@ -19,6 +19,7 @@ public class SparkSubmitDecryptEcOmsOrderExample {
         GlobalConfig config = new GlobalConfig();
         final String dbName = "ec_order";
         final String tableName = "ec_oms_order";
+        config.setDbType(GlobalConfig.MYSQL);
         config.setSourceUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setTargetUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setRuleTableName(tableName);

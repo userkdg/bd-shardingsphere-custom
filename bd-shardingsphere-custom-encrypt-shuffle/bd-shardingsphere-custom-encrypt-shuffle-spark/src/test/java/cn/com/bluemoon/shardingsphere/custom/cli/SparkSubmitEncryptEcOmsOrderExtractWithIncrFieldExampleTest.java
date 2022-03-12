@@ -23,6 +23,7 @@ public class SparkSubmitEncryptEcOmsOrderExtractWithIncrFieldExampleTest {
         final String tableName = "ec_oms_order";
         config.setSourceUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
         config.setTargetUrl(String.format("jdbc:mysql://192.168.234.7:3306/%s?user=shproxy_morder&password=9kD6sN4qMIwN", dbName));
+        config.setDbType(GlobalConfig.MYSQL);
         config.setDbName(dbName);
         config.setRuleTableName(tableName);
         config.setPrimaryCols(Arrays.asList(

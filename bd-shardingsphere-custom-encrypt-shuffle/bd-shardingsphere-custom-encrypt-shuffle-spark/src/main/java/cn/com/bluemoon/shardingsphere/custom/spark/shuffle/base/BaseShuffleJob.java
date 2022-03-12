@@ -51,6 +51,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
         }
     }
 
+    @Override
     public void init() {
         log.info("start job !!");
         if (config.internalGetExtractCols() == null || config.internalGetExtractCols().isEmpty()) {
