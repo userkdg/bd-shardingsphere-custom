@@ -18,6 +18,8 @@ public class ExtractFactory {
         // 2021/12/18 可以优化为SPI+ExtractTypeString 动态增加抽取方式
         if (ExtractMode.WithIncField.equals(config.getExtractMode())) {
             return new SparkDbExtractIWithIncField(config, spark);
+        } else if (ExtractMode.WithIncFieldOnce.equals(config.getExtractMode())) {
+            return new SparkDbExtractIWithIncFieldOnce(config, spark);
         } else if (ExtractMode.OtherCustom.equals(config.getExtractMode())) {
             return new SparkDbExtractCustom(config, spark);
         } else {

@@ -22,11 +22,11 @@ import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSp
 public class DbTablePartitionUtils {
 
     /**
-     * 分区数、生产中可以调大点，如：ec_oms_order 给50000，表现不错
+     * 分区数、生产大表（100w以上）中可以调大点，如：ec_oms_order 给10000，表现不错
      * 本地调试建议调小eg:50
      *
      */
-    public static final String EC_ORDER_CODE_PARTITION = System.getProperty("ec.order.code.partition", "50000");
+    public static final String EC_ORDER_CODE_PARTITION = System.getProperty("ec.order.code.partition", "5000");
 
     /**
      * 密集数据起点

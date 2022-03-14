@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum ExtractMode {
     All(1, "all", "全量抽取"),
     OtherCustom(4, "custom","其他抽取方式，基于customExtractWhereSql字段来定义"),
-    WithIncField(5, "withIncField","带增量字段抽取，如：last_update_time");
+    WithIncField(5, "withIncField","带增量字段抽取，如：last_update_time"),
+    WithIncFieldOnce(6, "WithIncFieldOnce","带增量字段抽取一次，如：last_update_time");
 
     private final int type;
     private final String name, desc;
