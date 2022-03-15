@@ -33,7 +33,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
 
-    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "100000000");
+    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
 
     @Setter
     protected GlobalConfig config;
@@ -174,12 +174,14 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
             if (hadCustomPartition) {
                 dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
             } else {
-                dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
+                //  2022/3/14 要证走索引
+                dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+//                dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
             }
         }
         if ("postgresql".equalsIgnoreCase(databaseType)) {
             if (hadCustomPartition) {
-                dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+                dynamicPartitionField = String.format(" %s AS %s",   wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
             } else {
                 dynamicPartitionField = String.format(" CAST(%s AS INTEGER) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
             }

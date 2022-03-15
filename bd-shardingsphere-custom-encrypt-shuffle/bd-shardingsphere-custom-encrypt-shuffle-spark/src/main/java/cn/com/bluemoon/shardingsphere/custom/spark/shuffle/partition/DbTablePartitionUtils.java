@@ -41,10 +41,14 @@ public class DbTablePartitionUtils {
     private static final ConcurrentHashMap<String, List<TablePartition>> dbNameAndTablePartitions = new ConcurrentHashMap<>(16);
 
     static {
-        String[] orderCodePredicate = getOrderCodePredicate();
+        String[] orderCodePredicate = getOrderCodePredicate(null);
+
         dbNameAndTablePartitions.put("ec_order", ImmutableList.of(
                 new TablePartition("ec_oms_order", orderCodePredicate),
-                new TablePartition("ec_oms_plat_order_encrypt_data", orderCodePredicate)
+                new TablePartition("ec_oms_plat_order_encrypt_data", orderCodePredicate),
+                new TablePartition("ec_oms_plat_order_decrypt_data", orderCodePredicate),
+                new TablePartition("ec_oms_plat_tmall_presale_order", getOrderCodePredicate(100)),
+                new TablePartition("ec_oms_plat_address_modify_record", getOrderCodePredicate(100))
         ));
         // ... other datasource
     }
@@ -62,12 +66,12 @@ public class DbTablePartitionUtils {
         return null;
     }
 
-    private static String[] getOrderCodePredicate() {
+    private static String[] getOrderCodePredicate(Integer codePartitionNum) {
         List<String> partitions = new ArrayList<>();
         BigDecimal r = new BigDecimal(EC_ORDER_CODE_END_VALUE);
         BigDecimal p = new BigDecimal(EC_ORDER_CODE_START_VALUE);
         BigDecimal sub = r.subtract(p);
-        BigDecimal per = sub.divide(new BigDecimal(EC_ORDER_CODE_PARTITION)); // on proxy ok !!!, 在本地调试可以改小，避免分区过多
+        BigDecimal per = sub.divide(codePartitionNum != null && codePartitionNum > 0 ? new BigDecimal(codePartitionNum) : new BigDecimal(EC_ORDER_CODE_PARTITION)); // on proxy ok !!!, 在本地调试可以改小，避免分区过多
         String first = String.format("%s < %s or %s is null ", JDBC_PARTITION_FIELD_ID, p, JDBC_PARTITION_FIELD_ID);
         partitions.add(first);
         BigDecimal pre = p, curr = p;
