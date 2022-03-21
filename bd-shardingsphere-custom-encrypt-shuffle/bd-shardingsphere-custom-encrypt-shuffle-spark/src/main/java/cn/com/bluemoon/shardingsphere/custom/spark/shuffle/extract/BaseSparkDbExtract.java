@@ -29,7 +29,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
 
-    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "1000");
+    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "500");
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
 
