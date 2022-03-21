@@ -58,6 +58,9 @@ public class DbTablePartitionUtils {
     }
 
     public static String[] getPartitions(String dbName, String tableName) {
+        if (dbName == null) {
+            return null;
+        }
         List<TablePartition> tablePartitions = dbNameAndTablePartitions.get(dbName);
         if (tablePartitions != null) {
             return tablePartitions.stream().filter(t -> t.getTableName().equalsIgnoreCase(tableName))

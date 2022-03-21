@@ -47,6 +47,9 @@ public class EncryptShuffleEcOrderSysUserTest {
 
         config.setExtractMode(ExtractMode.WithIncField);
         config.setIncrTimestampCol("op_time");
+        config.setOnUpdateCurrentTimestamps(new ArrayList<String>(){{
+            add("op_time");
+        }});
         // 指定增量值，直接跳过小于该值的数据
         config.setIncrTimestampColPreVal("2021-12-29 21:29:34.0");
         config.setMultiBatchUrlConfig(true);
