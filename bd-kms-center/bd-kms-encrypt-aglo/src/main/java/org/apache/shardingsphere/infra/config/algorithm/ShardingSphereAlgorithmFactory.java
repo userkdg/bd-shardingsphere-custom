@@ -42,6 +42,7 @@ public final class ShardingSphereAlgorithmFactory {
         put("RC4", "org.apache.shardingsphere.encrypt.algorithm.RC4EncryptAlgorithm");
         put("SM3", "org.apache.shardingsphere.encrypt.algorithm.SM3EncryptAlgorithm");
         put("SM4", "org.apache.shardingsphere.encrypt.algorithm.SM4EncryptAlgorithm");
+        put("MYSQL-AES", "org.apache.shardingsphere.encrypt.algorithm.MySQLAESEncryptAlgorithm");
     }};
 
     /**
