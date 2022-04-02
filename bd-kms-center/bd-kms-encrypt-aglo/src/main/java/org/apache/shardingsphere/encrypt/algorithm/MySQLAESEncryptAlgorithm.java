@@ -42,7 +42,6 @@ import java.util.Properties;
  */
 @Getter
 @Setter
-@Slf4j
 public final class MySQLAESEncryptAlgorithm implements EncryptAlgorithm<Object, String> {
 
     private static final String AES_KEY = "aes-key-value";
