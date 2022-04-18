@@ -13,10 +13,7 @@ import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -120,14 +117,17 @@ public final class EncryptAlgorithmUtils {
             }
         } else {
             String base64Str = props.getProperty(KMS_CENTER_SECURE_LOCAL_KEY);
-            Algorithm algorithm = getAlgorithmByBase64Str(base64Str);
-            log.debug("init algorithm : {}", algorithm);
-            SYS_SECURE_CACHE.put(algorithm.getSys(), createAlgorithm(algorithm));
+            Arrays.stream(base64Str.split(";")).filter(s -> s != null && !s.equals(""))
+                    .map(EncryptAlgorithmUtils::getAlgorithmByBase64Str)
+                    .forEachOrdered(algorithm -> {
+                        log.debug("init algorithm : {}", algorithm);
+                        SYS_SECURE_CACHE.put(algorithm.getSys(), createAlgorithm(algorithm));
+                    });
         }
         log.info("init finished, sys:{}", SYS_SECURE_CACHE.keySet());
     }
 
-    private static Algorithm getAlgorithmByBase64Str(String base64Str) {
+    public static Algorithm getAlgorithmByBase64Str(String base64Str) {
         return JSON.parseObject(Base64.getDecoder().decode(base64Str), Algorithm.class);
     }
 
@@ -159,7 +159,7 @@ public final class EncryptAlgorithmUtils {
     }
 
     @Data
-    private static class Algorithm {
+    public static class Algorithm {
 
         private String sys;
 
