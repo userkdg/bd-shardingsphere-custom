@@ -42,12 +42,12 @@ public final class AESEncryptAlgorithmTest {
     public void setUp() {
         Properties props = new Properties();
         props.setProperty("aes-key-value", "test");
-        encryptAlgorithm = ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration("AES", props), EncryptAlgorithm.class);
+        encryptAlgorithm = ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration("MYSQL-AES", props), EncryptAlgorithm.class);
     }
     
     @Test
     public void assertEncrypt() {
-        assertThat(encryptAlgorithm.encrypt("test"), is("dSpPiyENQGDUXMKFMJPGWA=="));
+        assertThat(encryptAlgorithm.encrypt("test"), is("h72QOIWUO+SKTmirY7Dsag=="));
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -55,7 +55,7 @@ public final class AESEncryptAlgorithmTest {
         Properties props = new Properties();
         encryptAlgorithm.setProps(props);
         encryptAlgorithm.init();
-        assertThat(encryptAlgorithm.encrypt("test"), is("dSpPiyENQGDUXMKFMJPGWA=="));
+        assertThat(encryptAlgorithm.encrypt("test"), is("h72QOIWUO+SKTmirY7Dsag=="));
     }
     
     @Test
@@ -65,7 +65,7 @@ public final class AESEncryptAlgorithmTest {
     
     @Test
     public void assertDecrypt() {
-        assertThat(encryptAlgorithm.decrypt("dSpPiyENQGDUXMKFMJPGWA==").toString(), is("test"));
+        assertThat(encryptAlgorithm.decrypt("h72QOIWUO+SKTmirY7Dsag==").toString(), is("test"));
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -73,7 +73,7 @@ public final class AESEncryptAlgorithmTest {
         Properties props = new Properties();
         encryptAlgorithm.setProps(props);
         encryptAlgorithm.init();
-        assertThat(encryptAlgorithm.decrypt("dSpPiyENQGDUXMKFMJPGWA==").toString(), is("test"));
+        assertThat(encryptAlgorithm.decrypt("h72QOIWUO+SKTmirY7Dsag==").toString(), is("test"));
     }
     
     @Test

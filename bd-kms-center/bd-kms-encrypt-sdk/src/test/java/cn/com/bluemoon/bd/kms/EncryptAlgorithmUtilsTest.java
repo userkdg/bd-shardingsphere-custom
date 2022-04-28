@@ -22,9 +22,9 @@ public class EncryptAlgorithmUtilsTest {
     }
 
     @Test
-    public void washing() {
+    public void wshs() {
         Object plain = "";
-        String sys = "washing";
+        String sys = "wshs";
         String cipher = EncryptAlgorithmUtils.encrypt(sys, plain);
         Object plain2 = EncryptAlgorithmUtils.decrypt(sys, cipher);
         System.out.println("sys: " + sys);
