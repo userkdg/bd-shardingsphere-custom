@@ -103,4 +103,29 @@ public class GenerateKmsConfig {
         Assert.assertEquals(algorithmByBase64Str.getSys(),("mhoms"));
         Assert.assertEquals(algorithmByBase64Str.getKey(),("{\"aes-key-value\":\"5lZ7ed1e3u49XD8p\"}"));
     }
+
+    @Test
+    public void ecoms() {
+        EncryptAlgorithmUtils.Algorithm algorithm = new EncryptAlgorithmUtils.Algorithm();
+        // 业务线
+        String algoType = "mysql-aes";
+        String sysKey = "ecoms";
+        algorithm.setSys(sysKey);
+        algorithm.setType(algoType);
+        Map<String, Object> keyProps = new HashMap<>();
+        keyProps.put("aes-key-value", "04rVFQfYYItOBVtk");
+        algorithm.setKey(JSON.toJSONString(keyProps));
+        // 加码
+        byte[] encode = Base64.getEncoder().encode(JSON.toJSONString(algorithm).getBytes(StandardCharsets.UTF_8));
+        String ec = new String(encode, StandardCharsets.UTF_8);
+        Assert.assertEquals(
+                "eyJrZXkiOiJ7XCJhZXMta2V5LXZhbHVlXCI6XCIwNHJWRlFmWVlJdE9CVnRrXCJ9Iiwic3lzIjoiZWNvbXMiLCJ0eXBlIjoibXlzcWwtYWVzIn0=",
+                ec);
+        // 解码
+        EncryptAlgorithmUtils.Algorithm algorithmByBase64Str = getAlgorithmByBase64Str(ec);
+        System.out.println(algorithmByBase64Str);
+        Assert.assertEquals(algorithmByBase64Str.getType(), algoType);
+        Assert.assertEquals(algorithmByBase64Str.getSys(), sysKey);
+        Assert.assertEquals(algorithmByBase64Str.getKey(),("{\"aes-key-value\":\"04rVFQfYYItOBVtk\"}"));
+    }
 }

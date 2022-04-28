@@ -33,4 +33,18 @@ public class EncryptAlgorithmUtilsTest {
         Assert.assertEquals("rtrps/sNEI13txoagbcyEw==", cipher);
         Assert.assertEquals(plain, plain2);
     }
+
+    @Test
+    public void ecoms() {
+        Object plain = "test";
+        String sys = "ecoms";
+        String cipher = EncryptAlgorithmUtils.encrypt(sys, plain);
+        Object plain2 = EncryptAlgorithmUtils.decrypt(sys, cipher);
+        System.out.println("sys: " + sys);
+        System.out.println(plain + " encrypt :" + cipher);
+        System.out.println(cipher + " decrypt :" + plain2);
+        Assert.assertEquals("tJWRH6vvzBP+VuzIHhFL5g==", cipher);
+        Assert.assertEquals(plain, plain2);
+    }
+
 }
