@@ -35,9 +35,9 @@ public class EncryptAlgorithmUtilsTest {
     }
 
     @Test
-    public void ecoms() {
+    public void eccrm() {
         Object plain = "test";
-        String sys = "ecoms";
+        String sys = "eccrm";
         String cipher = EncryptAlgorithmUtils.encrypt(sys, plain);
         Object plain2 = EncryptAlgorithmUtils.decrypt(sys, cipher);
         System.out.println("sys: " + sys);

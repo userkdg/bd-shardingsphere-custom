@@ -109,7 +109,7 @@ public class GenerateKmsConfig {
         EncryptAlgorithmUtils.Algorithm algorithm = new EncryptAlgorithmUtils.Algorithm();
         // 业务线
         String algoType = "mysql-aes";
-        String sysKey = "ecoms";
+        String sysKey = "eccrm";
         algorithm.setSys(sysKey);
         algorithm.setType(algoType);
         Map<String, Object> keyProps = new HashMap<>();
@@ -119,7 +119,7 @@ public class GenerateKmsConfig {
         byte[] encode = Base64.getEncoder().encode(JSON.toJSONString(algorithm).getBytes(StandardCharsets.UTF_8));
         String ec = new String(encode, StandardCharsets.UTF_8);
         Assert.assertEquals(
-                "eyJrZXkiOiJ7XCJhZXMta2V5LXZhbHVlXCI6XCIwNHJWRlFmWVlJdE9CVnRrXCJ9Iiwic3lzIjoiZWNvbXMiLCJ0eXBlIjoibXlzcWwtYWVzIn0=",
+                "eyJrZXkiOiJ7XCJhZXMta2V5LXZhbHVlXCI6XCIwNHJWRlFmWVlJdE9CVnRrXCJ9Iiwic3lzIjoiZWNjcm0iLCJ0eXBlIjoibXlzcWwtYWVzIn0=",
                 ec);
         // 解码
         EncryptAlgorithmUtils.Algorithm algorithmByBase64Str = getAlgorithmByBase64Str(ec);
