@@ -128,7 +128,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
     protected Map<String, String> getSourceJdbcBasicProps() {
         Map<String, String> props = new HashMap<>(16);
         if (MYSQL.equalsIgnoreCase(config.getDbType())) {
-            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.cj.jdbc.Driver");
+            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.jdbc.Driver");
         } else if (POSTGRESQL.equalsIgnoreCase(config.getDbType())) {
             props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "org.postgresql.Driver");
         } else {

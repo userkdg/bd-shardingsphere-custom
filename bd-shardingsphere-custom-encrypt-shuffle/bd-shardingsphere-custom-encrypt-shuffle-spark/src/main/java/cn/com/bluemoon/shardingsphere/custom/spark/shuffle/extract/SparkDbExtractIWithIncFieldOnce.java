@@ -24,8 +24,6 @@ import java.util.Objects;
 public class SparkDbExtractIWithIncFieldOnce extends BaseSparkDbExtract implements Iterator<Dataset<Row>> {
 
     private volatile String preExtractTimestamp;
-    private volatile String curMaxIncrTimestamp;
-    private volatile Dataset<Row> nextDfWithCache;
 
     public SparkDbExtractIWithIncFieldOnce(GlobalConfig config, SparkSession spark) {
         super(config, spark);
@@ -33,19 +31,6 @@ public class SparkDbExtractIWithIncFieldOnce extends BaseSparkDbExtract implemen
             log.warn("启动配置指定了上一次的增量最大值，【首次】直接使用preExtractTimestamp={}", config.getIncrTimestampColPreVal());
             preExtractTimestamp = config.getIncrTimestampColPreVal();
         }
-    }
-
-    /**
-     * 获取增量字段最大值
-     */
-    protected Map<String, String> getSourceJdbcMaxIncrTimestampProps() {
-        Map<String, String> props = getSourceJdbcBasicProps();
-        ExtractMode shuffleMode = config.getExtractMode();
-        Assert.isTrue(ExtractMode.WithIncField.equals(shuffleMode) && StringUtils.isNotBlank(config.getIncrTimestampCol()), "暂支持{}模式获取增量字段最大值", ExtractMode.WithIncField);
-        final String tableAlias = String.format("%s AS %s", config.getRuleTableName(), SPARK_JDBC_DBTABLE_ALIAS);
-        String maxQuerySql = String.format("(select MAX(%s) as %s from %s ) as max_table_tmp", wrappedFieldAlias(config.getIncrTimestampCol()), config.getIncrTimestampCol(), tableAlias);
-        props.put(JDBCOptions.JDBC_TABLE_NAME(), maxQuerySql);
-        return props;
     }
 
     @Override
@@ -84,7 +69,7 @@ public class SparkDbExtractIWithIncFieldOnce extends BaseSparkDbExtract implemen
 
     @Override
     public Dataset<Row> extract() {
-        return nextDfWithCache;
+        return next0();
     }
 
     @Override

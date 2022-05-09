@@ -18,6 +18,8 @@
         <scala.version>2.11</scala.version>
         <scala-library.version>2.11.12</scala-library.version>
         <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
+<!--        <mysql.version>8.0.21</mysql.version>-->
+        <mysql.version>5.1.49</mysql.version>
     </properties>
 
     <dependencies>
@@ -79,7 +81,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.21</version>
+            <version>${mysql.version}</version>
         </dependency>
 
         <dependency>

@@ -7,6 +7,11 @@ import org.junit.Test;
  * @author Jarod.Kong
  */
 public class EncryptAlgorithmUtilsTest {
+    @Test
+    public void testEcDecrypt() {
+        Object plain = EncryptAlgorithmUtils.decrypt("ec", "$D721IMixVf0sBpeb+nX6JA==$1$");
+        System.out.println(plain);
+    }
 
     @Test
     public void ec() {
