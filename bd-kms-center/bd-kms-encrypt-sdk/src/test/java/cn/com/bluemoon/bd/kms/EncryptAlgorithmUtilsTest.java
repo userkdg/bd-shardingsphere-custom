@@ -9,7 +9,7 @@ import org.junit.Test;
 public class EncryptAlgorithmUtilsTest {
     @Test
     public void testEcDecrypt() {
-        Object plain = EncryptAlgorithmUtils.decrypt("ec", "$D721IMixVf0sBpeb+nX6JA==$1$");
+        Object plain = EncryptAlgorithmUtils.decrypt("wshs", "rQf7qwflKswdQKXbYo+AEw==");
         System.out.println(plain);
     }
 
@@ -39,6 +39,21 @@ public class EncryptAlgorithmUtilsTest {
         Assert.assertEquals(plain, plain2);
     }
 
+
+    @Test
+    public void wshsProd() {
+        Object plain = "";
+        String sys = "wshs";
+        String cipher = EncryptAlgorithmUtils.encrypt(sys, plain);
+        Object plain2 = EncryptAlgorithmUtils.decrypt(sys, cipher);
+        System.out.println("sys: " + sys);
+        System.out.println(plain + " encrypt :" + cipher);
+        System.out.println(cipher + " decrypt :" + "$" + plain2 + "$");
+        Assert.assertEquals("SFhXDqGO0kQLjDbwgfloXg==", cipher);
+        Assert.assertEquals(plain, plain2);
+    }
+
+
     @Test
     public void eccrm() {
         Object plain = "test";
@@ -48,7 +63,7 @@ public class EncryptAlgorithmUtilsTest {
         System.out.println("sys: " + sys);
         System.out.println(plain + " encrypt :" + cipher);
         System.out.println(cipher + " decrypt :" + plain2);
-        Assert.assertEquals("tJWRH6vvzBP+VuzIHhFL5g==", cipher);
+        Assert.assertEquals("nXcET6Qb49c3ULUAA6nQyA==", cipher);
         Assert.assertEquals(plain, plain2);
     }
 
