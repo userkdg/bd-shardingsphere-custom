@@ -120,7 +120,6 @@ public final class EncryptAlgorithmUtils {
             Arrays.stream(base64Str.split(";")).filter(s -> s != null && !s.equals(""))
                     .map(EncryptAlgorithmUtils::getAlgorithmByBase64Str)
                     .forEachOrdered(algorithm -> {
-                        log.debug("init algorithm : {}", algorithm);
                         SYS_SECURE_CACHE.put(algorithm.getSys(), createAlgorithm(algorithm));
                     });
         }
@@ -128,7 +127,9 @@ public final class EncryptAlgorithmUtils {
     }
 
     public static Algorithm getAlgorithmByBase64Str(String base64Str) {
-        return JSON.parseObject(Base64.getDecoder().decode(base64Str), Algorithm.class);
+        Algorithm algorithm = JSON.parseObject(Base64.getDecoder().decode(base64Str), Algorithm.class);
+        log.debug("{} init algorithm : {}", base64Str, algorithm);
+        return algorithm;
     }
 
     private static ResponseResult getResponseResult(String kmsUrl) {

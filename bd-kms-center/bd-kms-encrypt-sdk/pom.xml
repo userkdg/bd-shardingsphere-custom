@@ -59,13 +59,14 @@
         <profile>
             <id>encrypt-sdk-prod</id>
             <properties>
-                <kms.encrypt.sdk>-5.0.0</kms.encrypt.sdk>
+                <kms.encrypt.sdk>-1.0.0</kms.encrypt.sdk>
                 <profiles.active>prod</profiles.active>
             </properties>
         </profile>
     </profiles>
 
     <build>
+        <finalName>${project.artifactId}${kms.encrypt.sdk}</finalName>
 
         <resources>
             <resource>
@@ -74,9 +75,6 @@
                     <include>*.*</include>
                 </includes>
                 <targetPath>./</targetPath>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
             </resource>
         </resources>
         <plugins>
