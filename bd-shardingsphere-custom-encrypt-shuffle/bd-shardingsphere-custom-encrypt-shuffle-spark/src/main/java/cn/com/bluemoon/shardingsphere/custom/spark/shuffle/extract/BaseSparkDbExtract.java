@@ -33,7 +33,10 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
 
-    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
+    /**
+     * bm_crm业务主键到了1亿+
+     */
+    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "200000000");
 
     @Setter
     protected GlobalConfig config;
