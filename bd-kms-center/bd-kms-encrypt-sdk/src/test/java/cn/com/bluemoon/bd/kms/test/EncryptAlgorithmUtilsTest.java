@@ -21,14 +21,14 @@ public class EncryptAlgorithmUtilsTest {
 
     @Test
     public void ec() {
-        Object plain = "";
+        Object plain = "蓝月亮";
         String sys = "ec";
         String cipher = EncryptAlgorithmUtils.encrypt(sys, plain);
         Object plain2 = EncryptAlgorithmUtils.decrypt(sys, cipher);
         System.out.println("sys: " + sys);
         System.out.println(plain + " encrypt :" + cipher);
         System.out.println(cipher + " decrypt :" + "$" + plain2 + "$");
-        assertEquals("rUqyBDkxhDi++bIKHICLZg==", cipher);
+        assertEquals("cIrvxAdb/L4QwjMwik7LuQ==", cipher);
         assertEquals(plain, plain2);
     }
 

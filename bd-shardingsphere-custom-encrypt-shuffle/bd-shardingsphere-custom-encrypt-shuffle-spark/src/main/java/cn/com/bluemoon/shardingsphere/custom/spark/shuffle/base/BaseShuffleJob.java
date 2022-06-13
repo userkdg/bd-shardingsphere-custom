@@ -28,7 +28,7 @@ import java.util.Optional;
 @Getter
 public abstract class BaseShuffleJob implements BaseShuffle {
 
-    public static final String WRITE_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.write.numPartitions", "50");
+    public static final String WRITE_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.write.numPartitions", "200");
 
     // must static
     protected static volatile Broadcast<GlobalConfig> globalConfigBroadcast = null;

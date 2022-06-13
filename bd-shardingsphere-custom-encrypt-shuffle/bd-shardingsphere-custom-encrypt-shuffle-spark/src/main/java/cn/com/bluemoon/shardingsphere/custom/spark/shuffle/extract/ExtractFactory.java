@@ -22,6 +22,8 @@ public class ExtractFactory {
             return new SparkDbExtractIWithIncFieldOnce(config, spark);
         } else if (ExtractMode.OtherCustom.equals(config.getExtractMode())) {
             return new SparkDbExtractCustom(config, spark);
+        } else if (ExtractMode.WithPersistStateCustomWhere.equals(config.getExtractMode())) {
+            return new SparkDbExtractWithPersistStateCustomWhere(config, spark);
         } else {
             return new SparkDbExtractAll(config, spark);
         }

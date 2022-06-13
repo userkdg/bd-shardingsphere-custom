@@ -12,6 +12,7 @@
     <artifactId>bd-kms-encrypt-sdk-${profiles.active}</artifactId>
     <dependencies>
 
+
         <dependency>
             <groupId>cn.com.bluemoon</groupId>
             <artifactId>bd-kms-encrypt-aglo</artifactId>
