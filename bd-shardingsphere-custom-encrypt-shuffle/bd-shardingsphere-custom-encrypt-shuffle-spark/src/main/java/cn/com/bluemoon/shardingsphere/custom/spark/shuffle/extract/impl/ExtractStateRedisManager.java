@@ -18,12 +18,17 @@ public class ExtractStateRedisManager implements IExtractStateManager<ExtractSta
 
     @SneakyThrows
     public ExtractStateRedisManager(String groupName) {
-        Yaml yaml = new Yaml();
-        @SuppressWarnings("unchecked")
-        Map<String, Object> config = yaml.loadAs(ExtractStateRedisManager.class.getClassLoader().getResourceAsStream("jedis-config.yaml"), Map.class);
+        Map<String, Object> config = getJedisConfig();
         String redisUri = Objects.toString(config.get("redis.uri"));
         this.jedisPool = new JedisPool(redisUri);
         this.groupName = groupName;
+    }
+
+    private Map<String, Object> getJedisConfig() {
+        Yaml yaml = new Yaml();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> config = yaml.loadAs(ExtractStateRedisManager.class.getClassLoader().getResourceAsStream("jedis-config.yaml"), Map.class);
+        return config;
     }
 
     public static void main(String[] args) {
