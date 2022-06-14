@@ -41,7 +41,7 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
             // 2022/6/10 管理当前抽取的增量最大值，提供下次使用，注意：每次刷新是在查询成功之后
             if (extractStateManager != null) {
                 ExtractState extractState = new ExtractState(config.getPartitionCol().getName(), tableSplitPkInfo.getMaxPkValue(), tableSplitPkInfo.getMinPkValue());
-                log.info("抽取表{}，区间：{}", config.getRuleTableName(), extractState);
+                log.info("抽取表{}，状态区间：{}", config.getRuleTableName(), extractState);
                 extractStateManager.addState(config.getRuleTableName(), extractState);
             }
         }
@@ -56,7 +56,7 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
             if (config.getCustomExtractWhereSql() != null){
                 res +=  String.format("and (%s) ", config.getCustomExtractWhereSql());
             }
-            log.info("获取表{}状态信息：{}，附加条件：{}", config.getRuleTableName(), preExtractState, res);
+            log.info("抽取表{}，状态区间：{}，附加条件：{}", config.getRuleTableName(), preExtractState, res);
             return res;
         }
         return String.format(" (%s) ", Optional.ofNullable(config.getCustomExtractWhereSql()).orElse(" 1=1 "));
