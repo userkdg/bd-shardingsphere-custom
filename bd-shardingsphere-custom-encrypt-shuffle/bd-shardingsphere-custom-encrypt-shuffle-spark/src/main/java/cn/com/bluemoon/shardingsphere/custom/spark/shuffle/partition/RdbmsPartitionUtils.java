@@ -51,7 +51,7 @@ public class RdbmsPartitionUtils {
         Configuration configuration = Configuration.from(config);
         SingleTableSplitUtil.DATABASE_TYPE = databaseType;
         Pair<Object, Object> minMaxIncrFieldRange = SingleTableSplitIncrUtil.getMinMaxIncrFieldRange(configuration);
-        return new ExtractState(splitIncrField, minMaxIncrFieldRange.getRight(), minMaxIncrFieldRange.getLeft(),
+        return new ExtractState(splitIncrField, minMaxIncrFieldRange.getLeft(), minMaxIncrFieldRange.getRight(),
                 DbFieldType.from(configuration.getString(Constant.INCR_TYPE)));
     }
 

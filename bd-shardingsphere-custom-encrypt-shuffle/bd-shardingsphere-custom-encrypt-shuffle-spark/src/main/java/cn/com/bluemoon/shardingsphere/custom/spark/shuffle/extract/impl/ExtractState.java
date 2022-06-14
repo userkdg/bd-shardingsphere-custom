@@ -15,7 +15,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ExtractState implements Serializable {
     private String incrName;
-    private Object maxIncrVal;
     private Object minIncrVal;
+    private Object maxIncrVal;
     private DbFieldType IncrType;
 }
