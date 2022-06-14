@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 自定义查询方式一次性抽取
+ * 自定义where条件+作业状态管理（支持多次执行、重置状态）
  *
  * @author Jarod.Kong
  */
