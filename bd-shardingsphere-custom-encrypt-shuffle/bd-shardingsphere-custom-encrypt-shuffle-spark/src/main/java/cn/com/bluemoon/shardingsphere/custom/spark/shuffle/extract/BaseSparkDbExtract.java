@@ -3,10 +3,9 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.InternalDbUtil;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.impl.ExtractState;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.DbTablePartitionUtils;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.RdbmsPartitionUtils;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.RdbmsPartitionUtils.TableSplitPkInfo;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.TableSplitPkInfo;
 import com.alibaba.datax.plugin.rdbms.util.DataBaseType;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -95,9 +94,9 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI, 
     }
 
     private DataBaseType getDatabaseType(String dbType) {
-        if ("mysql".equalsIgnoreCase(dbType)){
+        if ("mysql".equalsIgnoreCase(dbType)) {
             return DataBaseType.MySql;
-        }else if ("postgresql".equalsIgnoreCase(dbType)){
+        } else if ("postgresql".equalsIgnoreCase(dbType)) {
             return DataBaseType.PostgreSQL;
         }
         return DataBaseType.valueOf(dbType);
@@ -207,7 +206,7 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI, 
         }
         if ("postgresql".equalsIgnoreCase(databaseType)) {
             if (hadCustomPartition) {
-                dynamicPartitionField = String.format(" %s AS %s",   wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+                dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
             } else {
                 dynamicPartitionField = String.format(" CAST(%s AS INTEGER) AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
             }

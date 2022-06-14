@@ -100,7 +100,7 @@ public class SparkSubmitEncryptEcOmsOrderPkTypeTest {
 
         config.setShuffleCols(shuffleCols);
 
-        config.setExtractMode(ExtractMode.OtherCustom);
+        config.setExtractMode(ExtractMode.WithPersistStateCustomWhere);
         config.setMultiBatchUrlConfig(true);
         // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
         config.setOnUpdateCurrentTimestamps(new ArrayList<String>() {{
@@ -141,7 +141,7 @@ public class SparkSubmitEncryptEcOmsOrderPkTypeTest {
 
         config.setShuffleCols(shuffleCols);
 
-        config.setExtractMode(ExtractMode.OtherCustom);
+        config.setExtractMode(ExtractMode.WithPersistStateCustomWhere);
         config.setMultiBatchUrlConfig(true);
         // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
         config.setOnUpdateCurrentTimestamps(new ArrayList<String>() {{
@@ -180,7 +180,7 @@ public class SparkSubmitEncryptEcOmsOrderPkTypeTest {
 
         config.setShuffleCols(shuffleCols);
 
-        config.setExtractMode(ExtractMode.OtherCustom);
+        config.setExtractMode(ExtractMode.WithPersistStateCustomWhere);
         config.setMultiBatchUrlConfig(true);
         // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
         config.setOnUpdateCurrentTimestamps(new ArrayList<String>() {{
@@ -277,7 +277,7 @@ public class SparkSubmitEncryptEcOmsOrderPkTypeTest {
 
         config.setShuffleCols(shuffleCols);
 
-        config.setExtractMode(ExtractMode.OtherCustom);
+        config.setExtractMode(ExtractMode.WithPersistStateCustomWhere);
         config.setMultiBatchUrlConfig(true);
         // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
         config.setOnUpdateCurrentTimestamps(new ArrayList<String>() {{

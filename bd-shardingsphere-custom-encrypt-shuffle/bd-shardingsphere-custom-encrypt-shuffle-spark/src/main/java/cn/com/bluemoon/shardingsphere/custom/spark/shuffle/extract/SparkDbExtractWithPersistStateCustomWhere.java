@@ -40,7 +40,8 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
         } finally {
             // 2022/6/10 管理当前抽取的增量最大值，提供下次使用，注意：每次刷新是在查询成功之后
             if (extractStateManager != null) {
-                ExtractState extractState = new ExtractState(config.getPartitionCol().getName(), tableSplitPkInfo.getMaxPkValue(), tableSplitPkInfo.getMinPkValue());
+                ExtractState extractState = new ExtractState(config.getPartitionCol().getName(), tableSplitPkInfo.getMaxPkValue(),
+                        tableSplitPkInfo.getMinPkValue(), tableSplitPkInfo.getPkType());
                 log.info("抽取表{}，状态区间：{}", config.getRuleTableName(), extractState);
                 extractStateManager.addState(config.getRuleTableName(), extractState);
             }
@@ -51,7 +52,10 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
     protected String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> extractCols) {
         ExtractState preExtractState;
         if ((preExtractState = extractStateManager.getState(config.getRuleTableName())) != null && preExtractState.getPkName() != null){
-            String preExtractWhereSql = preExtractState.getPkName() + " > " + preExtractState.getMaxPkVal();
+            Object prePkMaxVal = preExtractState.getPkType().isNeedQuote() ?
+                    String.format("%s%s%s", preExtractState.getPkType().getQuote(),  preExtractState.getMaxPkVal(), preExtractState.getPkType().getQuote()) :
+                    preExtractState.getMaxPkVal();
+            String preExtractWhereSql = preExtractState.getPkName() + " > " + prePkMaxVal;
             String res =  String.format(" (%s) ", preExtractWhereSql);
             if (config.getCustomExtractWhereSql() != null){
                 res +=  String.format("and (%s) ", config.getCustomExtractWhereSql());

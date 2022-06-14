@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.impl;
 
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.IExtractStateManager;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.PkType;
 import com.alibaba.fastjson.JSON;
 import lombok.SneakyThrows;
 import org.yaml.snakeyaml.Yaml;
@@ -33,7 +34,7 @@ public class ExtractStateRedisManager implements IExtractStateManager<ExtractSta
 
     public static void main(String[] args) {
         ExtractStateRedisManager extractStateRedisManager = new ExtractStateRedisManager("test-group");
-        extractStateRedisManager.addState("test", new ExtractState("id", 1, 2));
+        extractStateRedisManager.addState("test", new ExtractState("id", 1, 2, PkType.STRING));
         ExtractState test = extractStateRedisManager.getState("test");
         System.out.println(test);
     }

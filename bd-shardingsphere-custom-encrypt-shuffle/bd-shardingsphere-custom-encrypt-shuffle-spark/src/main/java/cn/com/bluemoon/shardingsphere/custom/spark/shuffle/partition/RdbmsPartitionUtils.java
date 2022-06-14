@@ -9,7 +9,9 @@ import com.alibaba.datax.plugin.rdbms.util.DataBaseType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Jarod.Kong
@@ -17,14 +19,6 @@ import java.util.*;
 public class RdbmsPartitionUtils {
 
     private RdbmsPartitionUtils() {
-    }
-
-    @RequiredArgsConstructor
-    @Getter
-    public static class TableSplitPkInfo{
-        private final String[] pkPredicateArr;
-        private final Object minPkValue;
-        private final Object maxPkValue;
     }
 
     /**
@@ -69,8 +63,9 @@ public class RdbmsPartitionUtils {
         String[] predicateArr = doSplit.stream().map(c -> getQuerySqlWhereSuffix(c.getString(Key.QUERY_SQL)))
                 .filter(s -> s != null && !"".equals(s)).toArray(String[]::new);
         return new TableSplitPkInfo(predicateArr,
-                doSplit.size() > 0? doSplit.get(0).get(Constant.PK_TYPE_MIN_PK) : null,
-                doSplit.size() > 0? doSplit.get(0).get(Constant.PK_TYPE_MAX_PK) : null);
+                doSplit.size() > 0 ? doSplit.get(0).get(Constant.PK_TYPE_MIN_PK) : null,
+                doSplit.size() > 0 ? doSplit.get(0).get(Constant.PK_TYPE_MAX_PK) : null,
+                PkType.from(doSplit.size() > 0 ? doSplit.get(0).getString(Constant.PK_TYPE) : Constant.PK_TYPE_STRING + ""));
     }
 
     private static String getQuerySqlWhereSuffix(String querySql) {
@@ -81,4 +76,5 @@ public class RdbmsPartitionUtils {
         // 若没有predicate分片则返回完成查询语句，如：select * from sys_user ，故忽略掉，后续记得清楚
         return null;
     }
+
 }

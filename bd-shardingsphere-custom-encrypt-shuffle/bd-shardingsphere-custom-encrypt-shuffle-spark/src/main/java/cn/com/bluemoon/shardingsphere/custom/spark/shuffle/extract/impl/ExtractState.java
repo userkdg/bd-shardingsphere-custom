@@ -1,5 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.impl;
 
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.PkType;
 import lombok.*;
 
 import java.io.Serializable;
@@ -16,4 +17,5 @@ public class ExtractState implements Serializable {
     private String pkName;
     private Object maxPkVal;
     private Object minPkVal;
+    private PkType pkType;
 }
