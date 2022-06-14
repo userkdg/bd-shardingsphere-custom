@@ -3,12 +3,15 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.InternalDbUtil;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.impl.ExtractState;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.DbTablePartitionUtils;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.RdbmsPartitionUtils;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.TableSplitPkInfo;
+import com.alibaba.datax.plugin.rdbms.reader.util.SingleTableSplitIncrUtil;
 import com.alibaba.datax.plugin.rdbms.util.DataBaseType;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -24,7 +27,7 @@ import static cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig.PO
  * @author Jarod.Kong
  */
 @Slf4j
-public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI, IExtractStateCache {
+public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String JDBC_PARTITION_FIELD_ID = "proxy_batch_id";
 
@@ -52,15 +55,33 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI, 
     protected BaseSparkDbExtract(GlobalConfig config, SparkSession spark) {
         this.config = config;
         this.spark = spark;
-        // 优先表是否有自定义分区，否则，走统一配置的分区列，spark默认数值分区eg:0-1000, 1000-2000...
-        this.tableSplitPkInfo = RdbmsPartitionUtils.getTablePredicateArr(config.getRuleTableName(),
-                config.getPartitionCol().getName(),
+        this.tableSplitPkInfo = getTableSplitPkInfo(config);
+    }
+
+    private TableSplitPkInfo getTableSplitPkInfo(GlobalConfig config) {
+        // 分区字段必须是主键字段
+        String partitionName = config.getPartitionCol().getName();
+        boolean partIsPK = config.getPrimaryCols().stream().anyMatch(c -> c.getName().equalsIgnoreCase(partitionName));
+        if (!partIsPK){
+            throw new RuntimeException("洗数分区字段必须为主键字段");
+        }
+        // 获取表【主键】分片和分区字段（增量字段）最大、最小值
+        TableSplitPkInfo _tableSplitPkInfo = RdbmsPartitionUtils.getTablePredicateArr(config.getRuleTableName(),
+                partitionName,
                 config.getSourceUrl(), null, null,
                 Collections.singletonList("*"),
                 config.getCustomExtractWhereSql(),
                 Optional.ofNullable(config.getAdviceNumberPartition()).orElse(Integer.valueOf(JDBC_NUM_PARTITIONS)),
                 getDatabaseType(config.getDbType()),
                 Optional.ofNullable(config.getOpenPartitionPkTypeGuess()).orElse(false));
+        // 增量字段不是主键的情况，
+        if (StringUtils.isNotBlank(config.getIncrTimestampCol()) && !config.getIncrTimestampCol().equalsIgnoreCase(partitionName)){
+            ExtractState incrFieldExtractState = RdbmsPartitionUtils.getIncrFieldExtractState(config.getRuleTableName(),
+                    config.getIncrTimestampCol(), config.getSourceUrl(), null, null,
+                    config.getCustomExtractWhereSql(), getDatabaseType(config.getDbType()));
+            _tableSplitPkInfo = new TableSplitPkInfo(_tableSplitPkInfo.getPkPredicateArr(),incrFieldExtractState);
+        }
+        return _tableSplitPkInfo;
     }
 
     @Override

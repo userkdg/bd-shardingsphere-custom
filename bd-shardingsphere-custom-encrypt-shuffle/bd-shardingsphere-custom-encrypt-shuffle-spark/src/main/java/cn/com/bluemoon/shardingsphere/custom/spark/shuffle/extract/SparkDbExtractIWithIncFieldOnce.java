@@ -21,6 +21,7 @@ import java.util.Objects;
  * @author Jarod.Kong
  */
 @Slf4j
+@Deprecated
 public class SparkDbExtractIWithIncFieldOnce extends BaseSparkDbExtract implements Iterator<Dataset<Row>> {
 
     private volatile String preExtractTimestamp;

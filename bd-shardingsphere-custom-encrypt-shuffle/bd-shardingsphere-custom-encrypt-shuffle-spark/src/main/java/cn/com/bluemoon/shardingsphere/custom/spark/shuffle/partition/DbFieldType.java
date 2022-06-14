@@ -8,21 +8,22 @@ import java.io.Serializable;
 /**
  * @author Jarod.Kong
  */@Getter
-public enum PkType implements Serializable {
+public enum DbFieldType implements Serializable {
     STRING(1, "'", true),
-    NUMBER(2, "", false);
+    NUMBER(2, "", false),
+    TIMESTAMP(3, "'", true);
 
     private final int code;
     private final String quote;
     private final boolean needQuote;
 
-    PkType(int code, String quote, boolean needQuote) {
+    DbFieldType(int code, String quote, boolean needQuote) {
         this.code = code;
         this.quote = quote;
         this.needQuote = needQuote;
     }
 
-    public static PkType from(String dataXPkTypeStr){
+    public static DbFieldType from(String dataXPkTypeStr){
         if (dataXPkTypeStr == null) {
             throw new IllegalArgumentException("不合法字段类型");
         }
@@ -46,6 +47,10 @@ public enum PkType implements Serializable {
         if (String.valueOf(Constant.PK_TYPE_DECIMAL_ZERO_SCALE).equalsIgnoreCase(dataXPkTypeStr)){
             return NUMBER;
         }
+        if (Constant.INCR_TYPE_TIMESTAMP.equalsIgnoreCase(dataXPkTypeStr)){
+            return TIMESTAMP;
+        }
+
         return STRING;
     }
 }

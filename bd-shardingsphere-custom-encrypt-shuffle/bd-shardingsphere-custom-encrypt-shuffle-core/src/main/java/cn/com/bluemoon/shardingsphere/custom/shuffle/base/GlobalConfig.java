@@ -324,7 +324,8 @@ public class GlobalConfig implements Serializable {
         if (dbName == null) {
             throw new RuntimeException("必须指定数据库名");
         }
-        String guid = String.join("_", sourceUrl, targetUrl, dbName, ruleTableName,
+        // jdbcUrl、库名、表名、增量字段（无就固定为null）
+        String guid = String.join("_", sourceUrl, targetUrl, dbName, ruleTableName, incrTimestampCol,
                 extractMode.getType() + "", shuffleMode.getCode()+"");
         String jobGUID = dbName + "-" + ruleTableName + "-" + HashUtil.fnvHash(guid);
         System.out.println(">>>>>>> JobGUID " + jobGUID + "....");

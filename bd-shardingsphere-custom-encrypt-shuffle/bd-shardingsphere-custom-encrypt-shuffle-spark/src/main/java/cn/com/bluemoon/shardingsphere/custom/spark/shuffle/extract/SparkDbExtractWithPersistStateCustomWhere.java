@@ -40,10 +40,9 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
         } finally {
             // 2022/6/10 管理当前抽取的增量最大值，提供下次使用，注意：每次刷新是在查询成功之后
             if (extractStateManager != null) {
-                ExtractState extractState = new ExtractState(config.getPartitionCol().getName(), tableSplitPkInfo.getMaxPkValue(),
-                        tableSplitPkInfo.getMinPkValue(), tableSplitPkInfo.getPkType());
-                log.info("抽取表{}，状态区间：{}", config.getRuleTableName(), extractState);
-                extractStateManager.addState(config.getRuleTableName(), extractState);
+                ExtractState incrExtractState = tableSplitPkInfo.getIncrExtractState();
+                log.info("抽取表{}，状态区间：{}", config.getRuleTableName(), incrExtractState);
+                extractStateManager.addState(config.getRuleTableName(), incrExtractState);
             }
         }
     }
@@ -51,11 +50,11 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
     @Override
     protected String getCustomWhereSql(ExtractMode shuffleMode, List<String> fields, List<String> extractCols) {
         ExtractState preExtractState;
-        if ((preExtractState = extractStateManager.getState(config.getRuleTableName())) != null && preExtractState.getPkName() != null){
-            Object prePkMaxVal = preExtractState.getPkType().isNeedQuote() ?
-                    String.format("%s%s%s", preExtractState.getPkType().getQuote(),  preExtractState.getMaxPkVal(), preExtractState.getPkType().getQuote()) :
-                    preExtractState.getMaxPkVal();
-            String preExtractWhereSql = preExtractState.getPkName() + " > " + prePkMaxVal;
+        if ((preExtractState = extractStateManager.getState(config.getRuleTableName())) != null && preExtractState.getIncrName() != null){
+            Object prePkMaxVal = preExtractState.getIncrType().isNeedQuote() ?
+                    String.format("%s%s%s", preExtractState.getIncrType().getQuote(),  preExtractState.getMaxIncrVal(), preExtractState.getIncrType().getQuote()) :
+                    preExtractState.getMaxIncrVal();
+            String preExtractWhereSql = preExtractState.getIncrName() + " > " + prePkMaxVal;
             String res =  String.format(" (%s) ", preExtractWhereSql);
             if (config.getCustomExtractWhereSql() != null){
                 res +=  String.format("and (%s) ", config.getCustomExtractWhereSql());
@@ -69,10 +68,5 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
     @Override
     public String type() {
         return ExtractMode.WithPersistStateCustomWhere.getName();
-    }
-
-    @Override
-    public  IExtractStateManager<ExtractState> extractCache() {
-        return extractStateManager;
     }
 }

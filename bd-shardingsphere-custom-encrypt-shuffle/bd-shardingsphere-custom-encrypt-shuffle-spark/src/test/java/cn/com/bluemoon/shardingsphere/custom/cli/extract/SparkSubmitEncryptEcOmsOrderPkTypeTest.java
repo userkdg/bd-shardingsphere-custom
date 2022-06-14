@@ -71,6 +71,58 @@ public class SparkSubmitEncryptEcOmsOrderPkTypeTest {
         log.debug("json to bean:{}", globalConfig);
         SparkEncryptShuffleCli.main(new String[]{"-c " + json, config.getRuleTableName()});
     }
+    @Test
+    public void TestUUIDPkUsingUpdateTimeIncrFieldPK() {
+        GlobalConfig config = GetUUIDPkUsingUpdateTimeIncrFieldPKConfig();
+        // 转换
+        String json = GlobalConfigSwapper.swapToJsonStr(config);
+        log.debug("mock json example:{}", json);
+        GlobalConfig globalConfig = GlobalConfigSwapper.swapToConfig(json);
+        log.debug("json to bean:{}", globalConfig);
+        SparkEncryptShuffleCli.main(new String[]{"-c " + json, config.getRuleTableName()});
+    }
+
+    private GlobalConfig GetUUIDPkUsingUpdateTimeIncrFieldPKConfig() {
+        GlobalConfig config = new GlobalConfig();
+        final String dbName = "data_asset_platform";
+        final String tableName = "dap_data_model_pk_uuid";
+
+        config.setSourceUrl(String.format("jdbc:mysql://192.168.234.4:3304/%s?user=ds_sync_struct&password=JmMBtXTz&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai", dbName));
+        config.setTargetUrl(String.format("jdbc:mysql://192.168.234.4:3304/%s?user=ds_sync_struct&password=JmMBtXTz&useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai", dbName));
+        config.setDbType(GlobalConfig.MYSQL);
+        config.setDbName(dbName);
+        config.setRuleTableName(tableName);
+        config.setPrimaryCols(Arrays.asList(
+                new GlobalConfig.FieldInfo("id")
+        ));
+        config.setPartitionCol(new GlobalConfig.FieldInfo("id"));
+        config.setIncrTimestampCol("update_time");
+        config.setOnYarn(false);
+        config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
+
+        // 加密
+        Properties sourceProps = new Properties();
+        sourceProps.put("aes-key-value", "wlf1d5mmal2xsttr");
+        List<GlobalConfig.Tuple2<GlobalConfig.FieldInfo>> shuffleCols = new LinkedList<>();
+        GlobalConfig.Tuple2<GlobalConfig.FieldInfo> tuple1 = new GlobalConfig.Tuple2<>();
+        tuple1.setT1(new GlobalConfig.FieldInfo("name"));
+        tuple1.setT2(new GlobalConfig.FieldInfo("name_cipher", new GlobalConfig.EncryptRule("AES", sourceProps)));
+        shuffleCols.add(tuple1);
+
+        config.setShuffleCols(shuffleCols);
+
+        config.setExtractMode(ExtractMode.WithPersistStateCustomWhere);
+        config.setMultiBatchUrlConfig(true);
+        // 增加避免刷库更新SQL中timestamp自动更新问题，会拿该原值数据回填
+        config.setOnUpdateCurrentTimestamps(new ArrayList<String>() {{
+            add("update_time");
+        }});
+        // 新建配置定义，优化抽取性能
+        config.setOpenPartitionPkTypeGuess(true);
+        config.setAdviceNumberPartition(50);
+//        config.setResetJobState(true);
+        return config;
+    }
 
     private GlobalConfig GetUUIDStrPKtGlobalConfig() {
         GlobalConfig config = new GlobalConfig();
@@ -86,6 +138,7 @@ public class SparkSubmitEncryptEcOmsOrderPkTypeTest {
                 new GlobalConfig.FieldInfo("id")
         ));
         config.setPartitionCol(new GlobalConfig.FieldInfo("id"));
+        config.setIncrTimestampCol("update_time");
         config.setOnYarn(false);
         config.setJobName(String.format("bd-spark-encrypt-shuffle-%s-%s", dbName, tableName));
 

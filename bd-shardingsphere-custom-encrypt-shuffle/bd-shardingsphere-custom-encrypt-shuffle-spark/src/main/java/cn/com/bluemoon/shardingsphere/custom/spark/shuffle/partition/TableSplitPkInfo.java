@@ -1,6 +1,6 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition;
 
-import com.alibaba.datax.plugin.rdbms.reader.Constant;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.impl.ExtractState;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,11 +13,7 @@ import java.io.Serializable;
 @Getter
 public class TableSplitPkInfo implements Serializable {
     private final String[] pkPredicateArr;
-    private final Object minPkValue;
-    private final Object maxPkValue;
-    /**
-     * 对应datax的{@link Constant#PK_TYPE}
-     */
-    private final PkType pkType;
+
+    private final ExtractState incrExtractState;
 
 }
