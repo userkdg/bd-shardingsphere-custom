@@ -62,7 +62,9 @@ public class SparkDbExtractWithPersistStateCustomWhere extends BaseSparkDbExtrac
             log.info("抽取表{}，状态区间：{}，附加条件：{}", config.getRuleTableName(), preExtractState, res);
             return res;
         }
-        return String.format(" (%s) ", Optional.ofNullable(config.getCustomExtractWhereSql()).orElse(" 1=1 "));
+        String res = String.format(" (%s) ", Optional.ofNullable(config.getCustomExtractWhereSql()).orElse(" 1=1 "));
+        log.info("抽取表{}，状态区间：{}，附加条件：{}", config.getRuleTableName(), preExtractState, res);
+        return res;
     }
 
     @Override
