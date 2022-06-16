@@ -27,28 +27,57 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-public final class CustomizedEncryptAlgorithmTest {
+public final class MySQLAESEncryptAlgorithmTest {
     
     static {
         ShardingSphereServiceLoader.register(EncryptAlgorithm.class);
     }
     
-    private EncryptAlgorithm<Integer, Integer> encryptAlgorithm;
+    private EncryptAlgorithm encryptAlgorithm;
     
     @Before
     public void setUp() {
-        encryptAlgorithm = ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration("CUSTOMIZED", new Properties()), EncryptAlgorithm.class);
+        Properties props = new Properties();
+        props.setProperty("aes-key-value", "test");
+        encryptAlgorithm = ShardingSphereAlgorithmFactory.createAlgorithm(new ShardingSphereAlgorithmConfiguration("AES", props), EncryptAlgorithm.class);
     }
     
     @Test
     public void assertEncrypt() {
-        assertThat(encryptAlgorithm.encrypt(1000), is(1765228022));
+        assertThat(encryptAlgorithm.encrypt("test"), is("dSpPiyENQGDUXMKFMJPGWA=="));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void assertEncryptWithoutKey() {
+        Properties props = new Properties();
+        encryptAlgorithm.setProps(props);
+        encryptAlgorithm.init();
+        assertThat(encryptAlgorithm.encrypt("test"), is("dSpPiyENQGDUXMKFMJPGWA=="));
+    }
+    
+    @Test
+    public void assertEncryptWithNullPlaintext() {
+        assertNull(encryptAlgorithm.encrypt(null));
     }
     
     @Test
     public void assertDecrypt() {
-        assertThat(encryptAlgorithm.decrypt(1765228022), is(1000));
+        assertThat(encryptAlgorithm.decrypt("dSpPiyENQGDUXMKFMJPGWA==").toString(), is("test"));
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void assertDecryptWithoutKey() {
+        Properties props = new Properties();
+        encryptAlgorithm.setProps(props);
+        encryptAlgorithm.init();
+        assertThat(encryptAlgorithm.decrypt("dSpPiyENQGDUXMKFMJPGWA==").toString(), is("test"));
+    }
+    
+    @Test
+    public void assertDecryptWithNullCiphertext() {
+        assertNull(encryptAlgorithm.decrypt(null));
     }
 }

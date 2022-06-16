@@ -2,6 +2,7 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleFlatMapFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
@@ -13,6 +14,7 @@ import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.encrypt.Encryp
 /**
  * @author Jarod.Kong
  */
+@Slf4j
 public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
 
     public EncryptFlatMapFunction(Broadcast<GlobalConfig> broadcast) {
@@ -32,8 +34,13 @@ public class EncryptFlatMapFunction extends BaseShuffleFlatMapFunction {
                 GlobalConfig.FieldInfo targetCol = globalConfig.getTargetColOrElse(extractColName, extractCol);
                 GlobalConfig.EncryptRule encryptRule = targetCol.getEncryptRule();
                 String type = encryptRule.getType();
-                EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
-                Object cipherText = encryptAlgorithm.encrypt(val);
+                Object cipherText = null;
+                try {
+                    EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
+                    cipherText = encryptAlgorithm.encrypt(val);
+                } catch (Exception e) {
+                    log.error("{}加密失败，信息：{}", val, row, e);
+                }
                 r.put(targetCol.getName(), cipherText);
             }
             // 2022/2/25 sql增加onUpdateCurrentTimestamps

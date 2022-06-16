@@ -9,8 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>bd-kms-encrypt-sdk</artifactId>
+    <artifactId>bd-kms-encrypt-sdk-${profiles.active}</artifactId>
     <dependencies>
+
 
         <dependency>
             <groupId>cn.com.bluemoon</groupId>
@@ -45,27 +46,8 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>encrypt-sdk-test</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <kms.encrypt.sdk>-${project.version}</kms.encrypt.sdk>
-                <profiles.active>test</profiles.active>
-            </properties>
-        </profile>
-        <profile>
-            <id>encrypt-sdk-prod</id>
-            <properties>
-                <kms.encrypt.sdk>-5.0.0</kms.encrypt.sdk>
-                <profiles.active>prod</profiles.active>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
 
         <resources>
             <resource>
@@ -75,9 +57,6 @@
                 </includes>
                 <targetPath>./</targetPath>
             </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
         </resources>
         <plugins>
 
@@ -86,7 +65,7 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
-                    <finalName>${project.artifactId}${kms.encrypt.sdk}</finalName>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>

@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.shuffle.base;
 
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.HashUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.*;
 
@@ -33,6 +34,14 @@ public class GlobalConfig implements Serializable {
      * 必填
      */
     private String dbName;
+
+    /**
+     * 数据库类型
+     * {@link GlobalConfig#POSTGRESQL}
+     * {@link GlobalConfig#MYSQL}
+     * 必填
+     */
+    private String dbType;
 
     /**
      * 刷数表
@@ -125,6 +134,28 @@ public class GlobalConfig implements Serializable {
     private ShuffleMode shuffleMode = ShuffleMode.ENCRYPT;
 
     /**
+     * 建议分片数多少
+     */
+    private Integer adviceNumberPartition;
+    /**
+     * 是否开启分片字段类型值的猜测类型
+     * 1.uuid字符串，走uuid分片
+     * 2.普通字符串，走asci码分片
+     * 3.(\d+){19,25}整型的字符串类型，走long分片
+     * 4.整型类型，走long分片
+     * 注：存在猜测错误情况，目前基于表的分片字段，最大值和最小值都符合某个场景才进行场景分片
+     */
+    private Boolean openPartitionPkTypeGuess;
+
+    /**
+     * 提供重置有状态的作业抽取状态
+     * 如：WithPersistStateCustomWhere会管理作业状态，每次跑作业会尝试获取上一次的最大pk值，进行续点作业
+     */
+    @Setter
+    @Getter
+    private boolean resetJobState = false;
+
+    /**
      * 内部设置
      * 不推荐外部设置
      */
@@ -180,28 +211,20 @@ public class GlobalConfig implements Serializable {
         return Optional.ofNullable(partitionCol);
     }
 
-    public String getConvertSourceUrl() {
-        return InternalDbUtil.convertJdbcUrl(sourceUrl, multiBatchUrlConfig);
+    public Integer getAdviceNumberPartition() {
+        return adviceNumberPartition;
     }
 
-    public String getConvertTargetUrl() {
-        return InternalDbUtil.convertJdbcUrl(targetUrl, multiBatchUrlConfig);
+    public void setAdviceNumberPartition(Integer adviceNumberPartition) {
+        this.adviceNumberPartition = adviceNumberPartition;
     }
 
-    public String getDatabaseType() {
-        if (sourceUrl != null) {
-            return getDatabaseType(sourceUrl);
-        }
-        if (targetUrl != null) {
-            return getDatabaseType(targetUrl);
-        }
-        return null;
+    public Boolean getOpenPartitionPkTypeGuess() {
+        return openPartitionPkTypeGuess;
     }
 
-    private String getDatabaseType(String sourceUrl) {
-        if (sourceUrl.contains("jdbc:mysql")) return MYSQL;
-        if (sourceUrl.contains("jdbc:postgresql")) return POSTGRESQL;
-        throw new RuntimeException("不支持数据库类型");
+    public void setOpenPartitionPkTypeGuess(Boolean openPartitionPkTypeGuess) {
+        this.openPartitionPkTypeGuess = openPartitionPkTypeGuess;
     }
 
     @Override
@@ -224,6 +247,9 @@ public class GlobalConfig implements Serializable {
                 .add("extractMode=" + extractMode)
                 .add("multiBatchUrlConfig=" + multiBatchUrlConfig)
                 .add("shuffleMode=" + shuffleMode)
+                .add("adviceNumberPartition=" + adviceNumberPartition)
+                .add("openPartitionPkTypeGuess=" + openPartitionPkTypeGuess)
+                .add("resetJobState=" + resetJobState)
                 .toString();
     }
 
@@ -233,14 +259,6 @@ public class GlobalConfig implements Serializable {
 
     public void setDbName(String dbName) {
         this.dbName = dbName;
-    }
-
-    public void setSourceUrl(String sourceUrl) {
-        this.sourceUrl = sourceUrl;
-    }
-
-    public void setTargetUrl(String targetUrl) {
-        this.targetUrl = targetUrl;
     }
 
     public String getRuleTableName() {
@@ -299,6 +317,21 @@ public class GlobalConfig implements Serializable {
         this.onYarn = onYarn;
     }
 
+    /**
+     * 定义一个作业全局唯一id标识，便于管理作业状态
+     */
+    public String getJobGUID() {
+        if (dbName == null) {
+            throw new RuntimeException("必须指定数据库名");
+        }
+        // jdbcUrl、库名、表名、增量字段（无就固定为null）
+        String guid = String.join("_", sourceUrl, targetUrl, dbName, ruleTableName, incrTimestampCol,
+                extractMode.getType() + "", shuffleMode.getCode()+"");
+        String jobGUID = dbName + "-" + ruleTableName + "-" + HashUtil.fnvHash(guid);
+        System.out.println(">>>>>>> JobGUID " + jobGUID + "....");
+        return jobGUID;
+    }
+
     public String getJobName() {
         return jobName;
     }
@@ -355,6 +388,30 @@ public class GlobalConfig implements Serializable {
 
     public void setOnUpdateCurrentTimestamps(List<String> onUpdateCurrentTimestamps) {
         this.onUpdateCurrentTimestamps = onUpdateCurrentTimestamps;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public void setSourceUrl(String sourceUrl) {
+        this.sourceUrl = sourceUrl;
+    }
+
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public void setTargetUrl(String targetUrl) {
+        this.targetUrl = targetUrl;
+    }
+
+    public String getDbType() {
+        return dbType;
+    }
+
+    public void setDbType(String dbType) {
+        this.dbType = dbType;
     }
 
     @Getter

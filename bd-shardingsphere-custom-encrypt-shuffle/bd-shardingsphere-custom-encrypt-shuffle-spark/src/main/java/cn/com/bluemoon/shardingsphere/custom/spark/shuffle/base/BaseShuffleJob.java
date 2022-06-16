@@ -1,8 +1,8 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ShuffleHandler;
-import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.BaseSparkDbExtract;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.ExtractFactory;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.SparkDbExtract;
 import lombok.Getter;
@@ -11,12 +11,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
-import org.apache.spark.sql.*;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Jarod.Kong
@@ -25,7 +28,7 @@ import java.util.*;
 @Getter
 public abstract class BaseShuffleJob implements BaseShuffle {
 
-    public static final String WRITE_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.write.numPartitions", "50");
+    public static final String WRITE_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.write.numPartitions", "200");
 
     // must static
     protected static volatile Broadcast<GlobalConfig> globalConfigBroadcast = null;
@@ -51,6 +54,7 @@ public abstract class BaseShuffleJob implements BaseShuffle {
         }
     }
 
+    @Override
     public void init() {
         log.info("start job !!");
         if (config.internalGetExtractCols() == null || config.internalGetExtractCols().isEmpty()) {
@@ -75,10 +79,15 @@ public abstract class BaseShuffleJob implements BaseShuffle {
             if (dbExtract instanceof Iterator) {
                 Iterator<Dataset<Row>> itr = (Iterator<Dataset<Row>>) dbExtract;
                 log.info("开始{}模式读取源表", config.getExtractMode());
-                while (itr.hasNext()) {
+                if (ExtractMode.WithIncFieldOnce.equals(config.getExtractMode())) {
                     Dataset<Row> df = itr.next();
-                    log.info("开始{}模式更新源表", config.getExtractMode());
                     doShuffleDf(df, df.schema(), globalConfigBroadcast.getValue());
+                } else if (ExtractMode.WithIncField.equals(config.getExtractMode())) {
+                    while (itr.hasNext()) {
+                        Dataset<Row> df = itr.next();
+                        log.info("开始{}模式更新源表", config.getExtractMode());
+                        doShuffleDf(df, df.schema(), globalConfigBroadcast.getValue());
+                    }
                 }
             } else {
                 Dataset<Row> df = dbExtract.extract();

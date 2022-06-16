@@ -1,6 +1,7 @@
 package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.InternalDbUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.broadcast.Broadcast;
@@ -25,6 +26,10 @@ public abstract class BaseShuffleForeachPartitionFunction<T> implements ForeachP
 
     public BaseShuffleForeachPartitionFunction(StructType schema, Broadcast<GlobalConfig> globalConfigBroadcast) {
         this.globalConfig = globalColsTypeHandlerBySparkSchema(globalConfigBroadcast, schema);
+    }
+
+    public String getConvertTargetUrl() {
+        return InternalDbUtil.convertJdbcUrl(globalConfig.getTargetUrl(), globalConfig.isMultiBatchUrlConfig());
     }
 
     @Override

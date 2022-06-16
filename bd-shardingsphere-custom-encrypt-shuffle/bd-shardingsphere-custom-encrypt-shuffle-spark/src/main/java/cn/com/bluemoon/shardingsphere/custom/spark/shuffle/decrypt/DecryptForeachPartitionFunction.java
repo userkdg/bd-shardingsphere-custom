@@ -30,7 +30,7 @@ public class DecryptForeachPartitionFunction extends BaseShuffleForeachPartition
     @Override
     protected void doUpdate(Iterator<Map<String, Object>> its) throws SQLException {
         List<GlobalConfig.FieldInfo> primaryCols = globalConfig.getPrimaryCols();
-        try (Connection conn = DriverManager.getConnection(globalConfig.getConvertTargetUrl())) {
+        try (Connection conn = DriverManager.getConnection(getConvertTargetUrl())) {
             List<String> plainBakCols = getPlainBakCols(globalConfig.internalGetExtractCols());
             final String updateDynamicSql = updateDynamicSqlBuilder(primaryCols, plainBakCols, globalConfig.getOnUpdateCurrentTimestamps());
             // 2022/2/25 sql增加onUpdateCurrentTimestamps

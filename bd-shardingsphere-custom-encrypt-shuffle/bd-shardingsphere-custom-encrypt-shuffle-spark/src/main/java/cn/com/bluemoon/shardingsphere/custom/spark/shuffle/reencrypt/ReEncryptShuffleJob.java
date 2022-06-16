@@ -29,7 +29,7 @@ public class ReEncryptShuffleJob implements EncryptShuffle {
 
     /**
      * 构建A->B->A
-     * 不能直接A->A，会导致死循环
+     * 不能直接A->A，当增量字段为自动更新时间戳（on update current_timestamp），不断更新，会导致死循环
      * so:要借用一个中间件字段
      */
     @SneakyThrows

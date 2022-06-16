@@ -2,6 +2,7 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.base.BaseShuffleFlatMapFunction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithm;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.Row;
@@ -13,6 +14,7 @@ import static cn.com.bluemoon.shardingsphere.custom.spark.shuffle.decrypt.Decryp
 /**
  * @author Jarod.Kong
  */
+@Slf4j
 public class DecryptFlatMapFunction extends BaseShuffleFlatMapFunction {
 
     public DecryptFlatMapFunction(Broadcast<GlobalConfig> broadcast) {
@@ -31,7 +33,12 @@ public class DecryptFlatMapFunction extends BaseShuffleFlatMapFunction {
                 GlobalConfig.EncryptRule encryptRule = extractCol.getEncryptRule();
                 String type = encryptRule.getType();
                 EncryptAlgorithm encryptAlgorithm = createEncryptAlgorithm(type, encryptRule.getProps());
-                Object plainText = encryptAlgorithm.decrypt(Objects.toString(val, null));
+                Object plainText = null;
+                try {
+                    plainText = encryptAlgorithm.decrypt(Objects.toString(val, null));
+                } catch (Exception e) {
+                    log.error("{}解密失败，信息：{}", val, row, e);
+                }
                 r.put(extractColName, val);
                 String targetColName = globalConfig.getTargetColOrElse(extractColName, wrapPlainBakFieldName(extractColName));
                 r.put(targetColName, plainText);

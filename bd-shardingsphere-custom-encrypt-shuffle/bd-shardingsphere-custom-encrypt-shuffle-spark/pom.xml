@@ -18,16 +18,60 @@
         <scala.version>2.11</scala.version>
         <scala-library.version>2.11.12</scala-library.version>
         <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
+<!--        <mysql.version>8.0.21</mysql.version>-->
+        <mysql.version>5.1.49</mysql.version>
+        <datax-project-version>0.0.1-SNAPSHOT</datax-project-version>
+
+        <!--slf4j 1.7.10 和 logback-classic 1.0.13 -->
+        <slf4j-api-version>1.7.10</slf4j-api-version>
+        <logback-classic-version>1.0.13</logback-classic-version>
     </properties>
 
-    <dependencies>
+    <profiles>
+        <profile>
+            <id>shuffle-spark-conf-test</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spark.active.env>test</spark.active.env>
+            </properties>
+        </profile>
+        <profile>
+            <id>shuffle-spark-conf-prod</id>
+            <properties>
+                <spark.active.env>prod</spark.active.env>
+            </properties>
+        </profile>
+    </profiles>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>4.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.datax</groupId>
+            <artifactId>plugin-rdbms-util</artifactId>
+            <version>${datax-project-version}</version>
+        </dependency>
         <dependency>
             <groupId>cn.com.bluemoon</groupId>
             <artifactId>bd-shardingsphere-custom-encrypt-shuffle-core</artifactId>
             <version>5.0.0-SNAPSHOT</version>
         </dependency>
-        
+
         <dependency>
             <groupId>cn.com.bluemoon</groupId>
             <artifactId>bd-kms-encrypt-aglo</artifactId>
@@ -67,19 +111,19 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.version}</artifactId>
             <version>${spark.version}</version>
-             <scope>provided</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.version}</artifactId>
             <version>${spark.version}</version>
-             <scope>provided</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.21</version>
+            <version>${mysql.version}</version>
         </dependency>
 
         <dependency>
@@ -93,10 +137,14 @@
         <finalName>bd-spark-encrypt-shuffle</finalName>
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <!--把相对应的独特资源(dev,test,prod这三种的一种)声明，也可以排除文件，如排除jsp文件-->
+                <directory>src/main/resources/bin/${spark.active.env}</directory>
                 <excludes>
                     <exclude>bin/*.sh</exclude>
                 </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
             </resource>
         </resources>
         <plugins>

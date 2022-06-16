@@ -2,9 +2,16 @@ package cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract;
 
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.ExtractMode;
 import cn.com.bluemoon.shardingsphere.custom.shuffle.base.GlobalConfig;
+import cn.com.bluemoon.shardingsphere.custom.shuffle.base.InternalDbUtil;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.extract.impl.ExtractState;
 import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.DbTablePartitionUtils;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.RdbmsPartitionUtils;
+import cn.com.bluemoon.shardingsphere.custom.spark.shuffle.partition.TableSplitPkInfo;
+import com.alibaba.datax.plugin.rdbms.reader.util.SingleTableSplitIncrUtil;
+import com.alibaba.datax.plugin.rdbms.util.DataBaseType;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -28,10 +35,14 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     public static final String BATCH_SIZE = System.getProperty("spark.encrypt.shuffle.jdbc.batchSize", "1000");
 
-    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "100");
+    public static final String JDBC_NUM_PARTITIONS = System.getProperty("spark.encrypt.shuffle.jdbc.numPartitions", "500");
 
     public static final String lowerBound = System.getProperty("spark.encrypt.shuffle.jdbc.lowerBound", "0");
-    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "10000000");
+
+    /**
+     * bm_crm业务主键到了1亿+
+     */
+    public static final String upperBound = System.getProperty("spark.encrypt.shuffle.jdbc.upperBound", "200000000");
 
     @Setter
     protected GlobalConfig config;
@@ -39,9 +50,38 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
     @Setter
     protected SparkSession spark;
 
+    protected TableSplitPkInfo tableSplitPkInfo;
+
     protected BaseSparkDbExtract(GlobalConfig config, SparkSession spark) {
         this.config = config;
         this.spark = spark;
+        this.tableSplitPkInfo = getTableSplitPkInfo(config);
+    }
+
+    private TableSplitPkInfo getTableSplitPkInfo(GlobalConfig config) {
+        // 分区字段必须是主键字段
+        String partitionName = config.getPartitionCol().getName();
+        boolean partIsPK = config.getPrimaryCols().stream().anyMatch(c -> c.getName().equalsIgnoreCase(partitionName));
+        if (!partIsPK){
+            throw new RuntimeException("洗数分区字段必须为主键字段");
+        }
+        // 获取表【主键】分片和分区字段（增量字段）最大、最小值
+        TableSplitPkInfo _tableSplitPkInfo = RdbmsPartitionUtils.getTablePredicateArr(config.getRuleTableName(),
+                partitionName,
+                config.getSourceUrl(), null, null,
+                Collections.singletonList("*"),
+                config.getCustomExtractWhereSql(),
+                Optional.ofNullable(config.getAdviceNumberPartition()).orElse(Integer.valueOf(JDBC_NUM_PARTITIONS)),
+                getDatabaseType(config.getDbType()),
+                Optional.ofNullable(config.getOpenPartitionPkTypeGuess()).orElse(false));
+        // 增量字段不是主键的情况，
+        if (StringUtils.isNotBlank(config.getIncrTimestampCol()) && !config.getIncrTimestampCol().equalsIgnoreCase(partitionName)){
+            ExtractState incrFieldExtractState = RdbmsPartitionUtils.getIncrFieldExtractState(config.getRuleTableName(),
+                    config.getIncrTimestampCol(), config.getSourceUrl(), null, null,
+                    config.getCustomExtractWhereSql(), getDatabaseType(config.getDbType()));
+            _tableSplitPkInfo = new TableSplitPkInfo(_tableSplitPkInfo.getPkPredicateArr(),incrFieldExtractState);
+        }
+        return _tableSplitPkInfo;
     }
 
     @Override
@@ -53,9 +93,9 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
      * 统一加载自定义表数据
      */
     protected Dataset<Row> loadCustomDbTableJdbcDF() {
-        // 优先表是否有自定义分区，否则，走统一配置的分区列，spark默认数值分区eg:0-1000, 1000-2000...
-        String[] customPartitionAllPredicateArr = DbTablePartitionUtils.getPartitions(config.getDbName(), config.getRuleTableName());
-        if (customPartitionAllPredicateArr != null && customPartitionAllPredicateArr.length > 0) {
+        String[] customPartitionAllPredicateArr = tableSplitPkInfo.getPkPredicateArr();
+//        String[] customPartitionAllPredicateArr = DbTablePartitionUtils.getPartitions(config.getDbName(), config.getRuleTableName());
+        if (customPartitionAllPredicateArr.length > 0) {
             ExtractMode shuffleMode = config.getExtractMode();
             Map<String, String> sourceJdbcBasicProps = getSourceJdbcBasicProps();
             Properties props = new Properties();
@@ -63,21 +103,39 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
                 log.info("set {}:{}", k, v);
                 props.setProperty(k, v);
             });
-            String dbTableByMode = getDbTableByMode(shuffleMode, config.getDatabaseType());
+            String dbTableByMode = getDbTableByMode(shuffleMode, config.getDbType());
             log.warn("表{}，开启自定义分区全量抽取方式：总分区数：{}，分区如下：", config.getRuleTableName(), customPartitionAllPredicateArr.length);
             for (String part : customPartitionAllPredicateArr) {
                 log.info("{}", part);
             }
-            return spark.read().jdbc(config.getConvertSourceUrl(), dbTableByMode, customPartitionAllPredicateArr, props);
+            return spark.read().jdbc(getConvertSourceUrl(), dbTableByMode, customPartitionAllPredicateArr, props);
         }
         log.info("加载表{}spark默认配置字段{}分区", config.getRuleTableName(), config.getPartitionCol());
         return spark.read().format("jdbc").options(getCustomDbTableJdbcReadProps()).load();
     }
 
+    private DataBaseType getDatabaseType(String dbType) {
+        if ("mysql".equalsIgnoreCase(dbType)) {
+            return DataBaseType.MySql;
+        } else if ("postgresql".equalsIgnoreCase(dbType)) {
+            return DataBaseType.PostgreSQL;
+        }
+        return DataBaseType.valueOf(dbType);
+    }
+
+    public String getConvertSourceUrl() {
+        return InternalDbUtil.convertJdbcUrl(config.getSourceUrl(), config.isMultiBatchUrlConfig());
+    }
+
+    public String getConvertTargetUrl() {
+        return InternalDbUtil.convertJdbcUrl(config.getTargetUrl(), config.isMultiBatchUrlConfig());
+    }
+
+
     protected Map<String, String> getCustomDbTableJdbcReadProps() {
         Map<String, String> props = getSourceJdbcBasicProps();
         ExtractMode shuffleMode = config.getExtractMode();
-        String dbTable = getDbTableByMode(shuffleMode, config.getDatabaseType());
+        String dbTable = getDbTableByMode(shuffleMode, config.getDbType());
         props.put(JDBCOptions.JDBC_TABLE_NAME(), dbTable);
         props.put(JDBCOptions.JDBC_PARTITION_COLUMN(), JDBC_PARTITION_FIELD_ID);
         props.put(JDBCOptions.JDBC_NUM_PARTITIONS(), JDBC_NUM_PARTITIONS);
@@ -115,14 +173,14 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
 
     protected Map<String, String> getSourceJdbcBasicProps() {
         Map<String, String> props = new HashMap<>(16);
-        if (MYSQL.equalsIgnoreCase(config.getDatabaseType())) {
-            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.cj.jdbc.Driver");
-        } else if (POSTGRESQL.equalsIgnoreCase(config.getDatabaseType())) {
+        if (MYSQL.equalsIgnoreCase(config.getDbType())) {
+            props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "com.mysql.jdbc.Driver");
+        } else if (POSTGRESQL.equalsIgnoreCase(config.getDbType())) {
             props.put(JDBCOptions.JDBC_DRIVER_CLASS(), "org.postgresql.Driver");
         } else {
-            log.warn("数据库类型{}未能初始化Driver，请增加driver和初始化！", config.getDatabaseType());
+            log.warn("数据库类型{}未能初始化Driver，请增加driver和初始化！", config.getDbType());
         }
-        props.put(JDBCOptions.JDBC_URL(), config.getConvertSourceUrl());
+        props.put(JDBCOptions.JDBC_URL(), getConvertSourceUrl());
         return props;
     }
 
@@ -162,7 +220,9 @@ public abstract class BaseSparkDbExtract implements SparkDbExtract, ExtractSPI {
             if (hadCustomPartition) {
                 dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
             } else {
-                dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
+                //  2022/3/14 要证走索引
+                dynamicPartitionField = String.format(" %s AS %s", wrappedFieldAlias(partitionCol.getName()), JDBC_PARTITION_FIELD_ID);
+//                dynamicPartitionField = String.format(" MOD(%s, %d) AS %s", wrappedFieldAlias(partitionCol.getName()), Integer.parseInt(JDBC_NUM_PARTITIONS), JDBC_PARTITION_FIELD_ID);
             }
         }
         if ("postgresql".equalsIgnoreCase(databaseType)) {
